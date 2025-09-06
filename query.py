@@ -51,16 +51,20 @@ def upsert_settings(chat_id: int, setting_name=None, value=None):
 
         if not settings:
             settings = {
-                "lang": None,
                 "course_id": None
             }
+
+            cur.execute(
+                f"INSERT INTO settings (settings, user_id) VALUES (%s, %s)",
+                (json.dumps(settings), chat_id)
+            )
 
         if setting_name and value:
 
             settings[setting_name] = value
 
             cur.execute(
-                f"INSERT INTO settings (settings, user_id) VALUES (%s, %s)",
+                f"UPDATE settings SET settings = %s, user_id = %s WHERE user_id={chat_id}",
                 (json.dumps(settings), chat_id)
             )
 

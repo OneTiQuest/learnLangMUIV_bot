@@ -9,7 +9,7 @@ def get_lang_markup():
     for lang in get_langs():
         markup.add(types.KeyboardButton(f"{lang[2]} {lang[1]}"))
         
-    return ('Выбери пожалуйста язык для обучения:', markup)
+    return markup
 
 
 # Предложение выбора кнопок курса
@@ -19,15 +19,28 @@ def get_course_markup():
     for course in get_courses():
         markup.add(types.KeyboardButton(f"{course[1]} {course[2]}"))
         
-    return ('Выбери свой курс обучения:', markup)
+    return markup
 
 
 # Предложение выбора кнопок для ученика
-def get_student_start_markup():
+def get_main_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
         types.KeyboardButton("Модули"),
         types.KeyboardButton("Настройки"),
     )
         
-    return ('Выбери пункт меню:', markup)
+    return markup
+
+
+# Предложение выбора кнопок для ученика
+def get_settings_markup():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    markup.add(
+        types.KeyboardButton("Изменить изучаемый язык"),
+        types.KeyboardButton("Изменить курс обучения"),
+        types.KeyboardButton("Изменить роль (тестовая функция)"),
+        types.KeyboardButton("⬅️ Назад"),
+    )
+        
+    return markup

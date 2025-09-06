@@ -1,62 +1,88 @@
 import telebot as tb
-from telebot import types
+import navigation
 from query import get_user_by_chat_id, save_user
-from scripts import student_start_script, student_settings_script
-
+from scripts import student_start_script
 
 TOKEN = "8271309227:AAH22j-4-MzFHekEKSFECDBtyP05_3MC0yY"
 bot = tb.TeleBot(TOKEN)
 
+# Локальное состояние пользователей бота
+users_state = {}
 
 # Обработчик команды /start
 @bot.message_handler(commands=["start"])
 def start(message):
+    user_id = message.chat.id
     user = get_user_by_chat_id(message.chat.id)
     if not user:
         user = save_user(message.from_user)
-
-    role = user[5]
-
-    # Обработка ученика
-    if role == 1:
         bot.send_message(
            message.chat.id,
            f"Привет, {message.from_user.first_name}👋."
         )
+                
+    role = user[5]
 
-        student_start_script(bot, message)
+    # Обработка ученика
+    if role == 1:
+        if user_id not in users_state:
+            student_start_script(users_state, user_id)
+
+        navigation.student_nav_handler(bot, users_state, user_id, message.text)
 
     # Обработка преподавателя
     elif role == 2:
-        pass
+        # Инициализация состояния пользователя
+        if user_id not in users_state:
+            users_state[user_id] = 'main'
+
+        navigation.teach_navigation_handler(bot, users_state, user_id, message.text)
 
     # Обработка администратора
     elif role == 3:
-        pass
+        # Инициализация состояния пользователя
+        if user_id not in users_state:
+            users_state[user_id] = 'main'
+
+        navigation.admin_navigation_handler(bot, users_state, user_id, message.text)
 
 # Обработчик текстовых сообщений пользователя
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
-    user = get_user_by_chat_id(message.chat.id)
+    user_id = message.chat.id
+    user = get_user_by_chat_id(user_id)
     if not user:
-        bot.send_message(message.chat.id, "Пользователь не найден в системе. Для регистрации напишите комманду /start")
+        bot.send_message(user_id, "Пользователь не найден в системе. Для регистрации напишите комманду /start")
+    
+    # Обработка кнопки "Назад"
+    if message.text == "⬅️ Назад":
+        back_button_handler(user_id)
 
     role = user[5]
+
     # Обработка ученика
     if role == 1:
-        answer = student_start_script(bot, message)
-        answer = student_settings_script(bot, message)
-        
-        if answer is None:
-            bot.send_message(message.chat.id, "Я не понимаю эту команду")
+        if user_id not in users_state:
+            student_start_script(users_state, user_id)
+            
+        navigation.student_nav_handler(bot, users_state, user_id, message.text)
 
     # Обработка преподавателя
     elif role == 2:
-        pass
+        # Инициализация состояния пользователя
+        if user_id not in users_state:
+            users_state[user_id] = 'main'
+
+        navigation.teach_nav_handler(bot, users_state, user_id, message.text)
 
     # Обработка администратора
     elif role == 3:
-        pass
+        # Инициализация состояния пользователя
+        if user_id not in users_state:
+            users_state[user_id] = 'main'
+
+        navigation.admin_nav_handler(bot, users_state, user_id, message.text)
+
     else:
         # Отправляем сообщение
         bot.send_message(
@@ -64,6 +90,23 @@ def handle_message(message):
             f"Не удалось обработать роль: {role}"
         )
 
+def back_button_handler(user_id: int):
+    current_state = users_state.get(user_id)
+
+    if current_state == "main":
+        users_state[user_id] = "main"
+
+    elif current_state == "lang_menu":
+        users_state[user_id] = "settings"
+
+    elif current_state == "course_menu":
+        users_state[user_id] = "settings"
+
+    elif current_state == "settings":
+        users_state[user_id] = "main"
+
+    else:
+        users_state[user_id] = "main"
 
 # Запуск бота
 if __name__ == "__main__":

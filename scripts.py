@@ -1,27 +1,14 @@
-from markups import get_lang_markup, get_course_markup, get_student_start_markup
 from query import upsert_settings, get_user_langs
-from check_answers import lang_answer, course_answer
 
+def student_start_script(users_state, user_id):
+    user_has_lang = get_user_langs(user_id)
+    user_has_course = upsert_settings(user_id)["course_id"]
 
-def student_start_script(bot, message):
-    answer = lang_answer(bot, message)
-    if not answer:
-        answer = course_answer(bot, message)
+    if not user_has_lang:
+        users_state[user_id] = '1_step'
 
-    if not get_user_langs(message.chat.id):
-        text, markup = get_lang_markup()
-    elif not upsert_settings(message.chat.id)["course_id"]:
-        text, markup = get_course_markup()
+    elif not user_has_course:
+        users_state[user_id] = '2_step'
+
     else:
-        text, markup = get_student_start_markup()
-
-    bot.send_message(
-        message.chat.id,
-        text,
-        reply_markup=markup
-    )
-
-    return answer
-
-def student_settings_script():
-    pass
+        users_state[user_id] = 'main'
