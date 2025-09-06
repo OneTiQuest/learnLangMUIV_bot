@@ -9,12 +9,13 @@ conn.autocommit = True
 
 def get_user_by_chat_id(chat_id: int):
     with conn.cursor() as cur:
-        cur.execute(f"SELECT * FROM users WHERE chat_id={chat_id}")
+        cur.execute(f"SELECT id, name, last_name, login, chat_id, role_id FROM users WHERE chat_id={chat_id}")
         return cur.fetchone()
 
 def save_user(user_info):
     with conn.cursor() as cur:
         cur.execute(
-            f"INSERT INTO users (name, last_name, login, chat_id, role_id) VALUES (%s, %s, %s, %s, 1)", 
+            f"INSERT INTO users (name, last_name, login, chat_id, role_id) VALUES (%s, %s, %s, %s, 1) RETURNING *", 
             (user_info.first_name, user_info.last_name, user_info.username, user_info.id)
             )
+        return cur.fetchone()
