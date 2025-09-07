@@ -1,4 +1,4 @@
-from query import get_langs, get_courses, set_user_lang, upsert_settings
+from query import get_langs, get_courses, get_roles
 
 
 def lang_answer(bot, text):
@@ -12,3 +12,8 @@ def course_answer(bot, text):
     for course in get_courses():
         if text == f'{course[1]} {course[2]}':
             return course
+        
+def role_answer(bot, text):
+    for role in get_roles():
+        if text == role[1]:
+            return role

@@ -24,6 +24,12 @@ def student_nav_handler(bot, users_state, user_id, text):
 
     elif current_state == 'settings':
         menu_handlers.settings_menu_handler(bot, users_state, user_id, text)
+    
+    elif current_state == 'roles':
+        menu_handlers.roles_menu_handler(bot, users_state, user_id, text)
+
+    elif current_state == 'modules':
+        menu_handlers.modules_menu_handler(bot, users_state, user_id, text)    
 
     else:
         bot.send_message(user_id, "Я не понимаю эту команду")

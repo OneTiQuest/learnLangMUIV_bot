@@ -1,5 +1,6 @@
 import telebot as tb
 import navigation
+import json
 from query import get_user_by_chat_id, save_user
 from scripts import student_start_script
 
@@ -45,6 +46,15 @@ def start(message):
             users_state[user_id] = 'main'
 
         navigation.admin_navigation_handler(bot, users_state, user_id, message.text)
+
+# Обработчик callback-запросов от инлайн кнопок
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    user_id = call.from_user.id
+    data = json.loads(call.data)
+
+    if data.get("type") == "module":
+        print(user_id, data.get("data"))
 
 # Обработчик текстовых сообщений пользователя
 @bot.message_handler(func=lambda message: True)
@@ -93,6 +103,8 @@ def handle_message(message):
 def back_button_handler(user_id: int):
     current_state = users_state.get(user_id)
 
+    # bot.send_message(user_id, f'Состояние перед НАЗАД: {current_state}')
+
     if current_state == "main":
         users_state[user_id] = "main"
 
@@ -104,6 +116,15 @@ def back_button_handler(user_id: int):
 
     elif current_state == "settings":
         users_state[user_id] = "main"
+
+    elif current_state == "roles":
+        users_state[user_id] = "settings"
+
+    elif current_state == "2_step":
+        users_state[user_id] = "1_step"
+
+    elif current_state == "1_step":
+        users_state[user_id] = "1_step"
 
     else:
         users_state[user_id] = "main"

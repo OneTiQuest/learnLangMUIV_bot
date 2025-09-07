@@ -32,7 +32,62 @@ def get_courses():
     with conn.cursor() as cur:
         cur.execute(f"SELECT id, name, code FROM courses")
         return cur.fetchall()
+
+def get_roles():
+    with conn.cursor() as cur:
+        cur.execute(f"SELECT id, name FROM roles")
+        return cur.fetchall()
+
+def get_modules(user_id: int):
+    with conn.cursor() as cur:
+        cur.execute(f"""
+            WITH lang_modules AS (
+            	SELECT
+            		m.id AS module_id,
+            		user_id
+            	FROM 
+            		users_langs ul
+            	JOIN
+            		modules m
+            	ON 
+            		m.lang_id = ul.lang_id
+            ), course_modules AS (
+            	SELECT
+            		module_id,
+            		user_id AS cui
+            	FROM 
+            		courses_modules cm
+            	JOIN
+            		settings s
+            	ON 
+            		cm.course_id = (s.settings::json->>'course_id')::int
+            ), m_ids AS (
+            	SELECT 
+            		*
+            	FROM
+            		lang_modules lm
+            	FULL JOIN
+            		course_modules cm
+            	USING(module_id)
+            )
+            SELECT
+            	id,
+            	name
+            FROM 
+            	m_ids
+            JOIN
+            	modules m
+            ON
+            	m_ids.module_id = m.id
+            WHERE 
+            	m_ids.user_id = {user_id}
+            	AND 
+            	m_ids.cui = {user_id}
+        """)
+        return cur.fetchall()
     
+def get_themes_by_module():
+    pass
 
 def create_lang(name, short_name):
     with conn.cursor() as cur:
@@ -73,7 +128,10 @@ def upsert_settings(chat_id: int, setting_name=None, value=None):
 def set_user_lang(user_id: int, lang_id: int):
     with conn.cursor() as cur:
         cur.execute(
-            f"INSERT INTO users_langs (user_id, lang_id) VALUES (%s, %s)",
+            f"\
+            DELETE FROM users_langs WHERE user_id={user_id}; \
+            INSERT INTO users_langs (user_id, lang_id) VALUES (%s, %s) \
+            ",
             (user_id, lang_id)
         )
 
