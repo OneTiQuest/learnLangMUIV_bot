@@ -86,8 +86,18 @@ def get_modules(user_id: int):
         """)
         return cur.fetchall()
     
-def get_themes_by_module():
-    pass
+def get_themes_by_module_id(module_id: int):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+                SELECT
+                	*
+                FROM 
+                	themes t
+                WHERE
+                	module_id = {module_id}
+                ORDER BY t."order" ASC
+            """)
 
 def create_lang(name, short_name):
     with conn.cursor() as cur:
