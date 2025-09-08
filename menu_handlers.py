@@ -124,7 +124,7 @@ def theme_menu_handler(bot, users_state, user_id: int, text: str):
     current_exersise_id = state[2]
 
     ex = get_exercise(current_theme_id, current_exersise_id)
-    
+
     if not ex:
         bot.send_message(user_id, f"Поздравляем, вы закрыли тему 😊")
         users_state[user_id] = 'main'
@@ -133,4 +133,4 @@ def theme_menu_handler(bot, users_state, user_id: int, text: str):
     ExersiseFactory.create_exersise(ex, bot, user_id)
 
     next_exersise_id = ex[0]
-    users_state[user_id] = f"theme/{next_exersise_id}/{next_exersise_id}"
+    users_state[user_id] = f"theme/{current_theme_id}/{next_exersise_id}"

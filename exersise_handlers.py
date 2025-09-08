@@ -52,13 +52,12 @@ class Audio(Exersise):
         super().__init__(exersise, bot, user_id)
     
     def send_message(self):
-        self.bot.send_audio(self.user_id, self.parse_data(), reply_markup=self.gen_markup())
-
-    def parse_data(self):
         if not self.data:
             return super().parse_data()
         
-        return f"{self.data.get('path')}/{self.id}.mp3"
+        with open(f"{self.data.get('path')}/{self.id}.mp3", 'rb') as audio:
+            self.bot.send_message(self.user_id, f"Прослушайте запись")
+            self.bot.send_audio(self.user_id, audio, reply_markup=self.gen_markup())
 
 
 class WhatText(Exersise):
