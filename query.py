@@ -136,9 +136,18 @@ def get_exercise(theme_id: int, prev_ex_id: int=None):
             {cut_cond}
             LIMIT 1
         """,
-        True,
         True
     )
+
+def save_answer(ex_id: int, user_id: int, answer: str):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+                DELETE FROM answers WHERE exercise_id = {ex_id} AND user_id = {user_id};
+                INSERT INTO answers (exercise_id, user_id, answer) VALUES ({ex_id}, {user_id}, %s);
+            """,
+            (answer)
+        )
 
 def create_lang(name, short_name):
     with conn.cursor() as cur:

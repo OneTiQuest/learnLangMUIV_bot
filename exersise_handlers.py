@@ -19,7 +19,11 @@ class Exersise():
         if self.data:
             self.data = json.loads(self.data)
 
+    def send(self):
         self.send_message()
+
+    def save_data(self):
+        pass
 
     def send_message(self):
         self.bot.send_message(self.user_id, f"<b>{self.name}</b>\n\n{self.parse_data()}", reply_markup=self.gen_markup(), parse_mode="HTML")
@@ -37,16 +41,25 @@ class Exersise():
         
         return self.data
 
+"""
+Недостающее слово
+"""
 class MissingWord(Exersise):
     def __init__(self, exersise, bot: TeleBot, user_id):
         super().__init__(exersise, bot, user_id)
 
 
+"""
+Правильный вариант
+"""
 class CorrectOption(Exersise):
     def __init__(self, exersise, bot: TeleBot, user_id):
         super().__init__(exersise, bot, user_id)
 
 
+"""
+Аудио
+"""
 class Audio(Exersise):
     def __init__(self, exersise, bot: TeleBot, user_id):
         super().__init__(exersise, bot, user_id)
@@ -60,10 +73,16 @@ class Audio(Exersise):
             self.bot.send_audio(self.user_id, audio, reply_markup=self.gen_markup())
 
 
+"""
+О чем говорится в тексте
+"""
 class WhatText(Exersise):
     def __init__(self, exersise, bot: TeleBot, user_id):
         super().__init__(exersise, bot, user_id)
 
+"""
+Теория
+"""
 class Theory(Exersise):
     def __init__(self, exersise, bot: TeleBot, user_id):
         super().__init__(exersise, bot, user_id)

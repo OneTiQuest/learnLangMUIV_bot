@@ -23,4 +23,4 @@ def select_theme_script(bot, theme_id, users_state, user_id):
 
     users_state[user_id] = f"theme/{theme_id}/{first_exersise[0]}"
 
-    ExersiseFactory.create_exersise(first_exersise, bot, user_id)
+    ExersiseFactory.create_exersise(first_exersise, bot, user_id).send()
