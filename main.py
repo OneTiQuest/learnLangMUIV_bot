@@ -2,7 +2,8 @@ import telebot as tb
 import navigation
 import json
 from query import get_user_by_chat_id, save_user
-from scripts import student_start_script
+from scripts import student_start_script, select_theme_script
+from menu_handlers import module_menu_handler
 
 TOKEN = "8271309227:AAH22j-4-MzFHekEKSFECDBtyP05_3MC0yY"
 bot = tb.TeleBot(TOKEN)
@@ -22,7 +23,7 @@ def start(message):
            f"Привет, {message.from_user.first_name}👋."
         )
                 
-    role = user[5]
+    role = user[4]
 
     # Обработка ученика
     if role == 1:
@@ -53,8 +54,15 @@ def handle_callback(call):
     user_id = call.from_user.id
     data = json.loads(call.data)
 
+    if users_state[user_id].split('/')[0] == "theme":
+        bot.send_message(user_id, "Сначала пройдите текущую тему : )")
+        return
+
     if data.get("type") == "module":
-        print(user_id, data.get("data"))
+        module_menu_handler(bot, user_id, data.get("data"))
+
+    if data.get("type") == "theme":
+        select_theme_script(bot, data.get("data"), users_state, user_id)
 
 # Обработчик текстовых сообщений пользователя
 @bot.message_handler(func=lambda message: True)
@@ -68,7 +76,7 @@ def handle_message(message):
     if message.text == "⬅️ Назад":
         back_button_handler(user_id)
 
-    role = user[5]
+    role = user[4]
 
     # Обработка ученика
     if role == 1:

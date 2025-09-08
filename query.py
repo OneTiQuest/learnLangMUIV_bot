@@ -11,7 +11,7 @@ conn.autocommit = True
 def get_user_by_chat_id(chat_id: int):
     with conn.cursor() as cur:
         cur.execute(
-            f"SELECT id, name, last_name, login, chat_id, role_id FROM users WHERE chat_id={chat_id}"
+            f"SELECT name, last_name, login, chat_id, role_id FROM users WHERE chat_id={chat_id}"
         )
         return cur.fetchone()
 
@@ -91,13 +91,52 @@ def get_themes_by_module_id(module_id: int):
         cur.execute(
             f"""
                 SELECT
-                	*
+                	id,
+                    name
                 FROM 
                 	themes t
                 WHERE
                 	module_id = {module_id}
                 ORDER BY t."order" ASC
             """)
+        return cur.fetchall()
+
+
+"""
+Получение текущего упражнения ученика
+"""
+def get_exercise(theme_id: int, prev_ex_id: int=None):
+    cut_cond = ''
+    if prev_ex_id:
+        cut_cond += f"JOIN prev_ex_limit ON te.order > prev_ex_limit.order"
+
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+                WITH theme_ex AS (
+                	SELECT 
+                	* 
+                	FROM
+                		exercise e
+                	WHERE theme_id = {theme_id} 
+                	ORDER BY e.order ASC
+                ), prev_ex_limit AS (
+                	SELECT
+                		CAST(e.order AS integer )
+                	FROM
+                		exercise e
+                	WHERE theme_id = {theme_id} AND id = {prev_ex_id or 1}
+                	ORDER BY e.order ASC
+                	LIMIT 1
+                )
+                SELECT
+                	*
+                FROM
+                	theme_ex te
+                {cut_cond}
+                LIMIT 1
+            """)
+        return cur.fetchone()
 
 def create_lang(name, short_name):
     with conn.cursor() as cur:

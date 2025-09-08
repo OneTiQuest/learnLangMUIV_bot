@@ -1,5 +1,5 @@
 from telebot import types
-from query import get_langs, get_courses, get_roles, get_modules
+from query import get_langs, get_courses, get_roles, get_modules, get_themes_by_module_id
 import json
 
 # Предложение выбора кнопок флагов
@@ -67,6 +67,15 @@ def get_modules_markup(user_id: int):
     markup = types.InlineKeyboardMarkup(row_width=2)
 
     for module in get_modules(user_id):
-        markup.add(types.InlineKeyboardButton(module[1], callback_data=json.dumps({"type": "module", "data": module})))
+        markup.add(types.InlineKeyboardButton(module[1], callback_data=json.dumps({"type": "module", "data": module[0]})))
+
+    return markup
+
+# Предложение выбора модулей
+def get_themes_markup(module_id: int):
+    markup = types.InlineKeyboardMarkup(row_width=2)
+
+    for theme in get_themes_by_module_id(module_id):
+        markup.add(types.InlineKeyboardButton(theme[1], callback_data=json.dumps({"type": "theme", "data": theme[0]})))
 
     return markup

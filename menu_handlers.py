@@ -1,6 +1,6 @@
 from check_answers import lang_answer, course_answer, role_answer
 import markups
-from query import set_user_lang, upsert_settings
+from query import set_user_lang, upsert_settings, get_exercise
 
 def _1_step_handler(bot, users_state, user_id: int, text: str):
     answer = lang_answer(bot, text)
@@ -113,5 +113,21 @@ def roles_menu_handler(bot, users_state, user_id: int, text: str):
     else:
         bot.send_message(user_id, "Выберите желаемую роль:", reply_markup=markups.get_roles_markup())
 
-def modules_menu_handler(bot, users_state, user_id: int, text: str):
-    bot.send_message(user_id, "Выберите нужный модуль:", reply_markup=markups.get_modules_markup(user_id))
+def module_menu_handler(bot, user_id: int, module_id: int):
+    bot.send_message(user_id, "Выберите необходимую тему:", reply_markup=markups.get_themes_markup(module_id))
+
+def theme_menu_handler(bot, users_state, user_id: int, text: str):
+    state = str(users_state[user_id]).split('/')
+    current_theme_id = state[1]
+    current_exersise_id = state[2]
+
+    ex = get_exercise(current_theme_id, current_exersise_id)
+    if not ex:
+        bot.send_message(user_id, f"Поздравляем, вы закрыли тему")
+        users_state[user_id] = 'main'
+        return
+
+    bot.send_message(user_id, f"БУ БУ БУ. Введите ответ на задавние:\n{ex[1]}")
+
+    next_exersise_id = ex[0]
+    users_state[user_id] = f"theme/{next_exersise_id}/{next_exersise_id}"
