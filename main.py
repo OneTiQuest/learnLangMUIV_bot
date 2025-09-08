@@ -54,6 +54,9 @@ def handle_callback(call):
     user_id = call.from_user.id
     data = json.loads(call.data)
 
+    if user_id not in users_state:
+        return
+
     if users_state[user_id].split('/')[0] == "theme":
         bot.send_message(user_id, "Сначала пройдите текущую тему : )")
         return

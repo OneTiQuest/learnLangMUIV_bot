@@ -1,6 +1,8 @@
 from check_answers import lang_answer, course_answer, role_answer
 import markups
 from query import set_user_lang, upsert_settings, get_exercise
+from exersise_handlers import ExersiseFactory
+
 
 def _1_step_handler(bot, users_state, user_id: int, text: str):
     answer = lang_answer(bot, text)
@@ -122,12 +124,13 @@ def theme_menu_handler(bot, users_state, user_id: int, text: str):
     current_exersise_id = state[2]
 
     ex = get_exercise(current_theme_id, current_exersise_id)
+    
     if not ex:
-        bot.send_message(user_id, f"Поздравляем, вы закрыли тему")
+        bot.send_message(user_id, f"Поздравляем, вы закрыли тему 😊")
         users_state[user_id] = 'main'
         return
 
-    bot.send_message(user_id, f"БУ БУ БУ. Введите ответ на задавние:\n{ex[1]}")
+    ExersiseFactory.create_exersise(ex, bot, user_id)
 
     next_exersise_id = ex[0]
     users_state[user_id] = f"theme/{next_exersise_id}/{next_exersise_id}"

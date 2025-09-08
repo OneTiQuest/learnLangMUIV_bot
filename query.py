@@ -8,12 +8,20 @@ DB_NAME = "postgres"
 conn = psycopg2.connect(database=DB_NAME, user=DB_USER, password=DB_PASSWORD, host="localhost", port=5432)
 conn.autocommit = True
 
-def get_user_by_chat_id(chat_id: int):
+def run_sql(query: str, is_one: bool = False, is_log: bool = False):
+    if is_log:
+        print(query)
+
     with conn.cursor() as cur:
-        cur.execute(
-            f"SELECT name, last_name, login, chat_id, role_id FROM users WHERE chat_id={chat_id}"
-        )
-        return cur.fetchone()
+        cur.execute(query)
+
+        if is_one:
+            return cur.fetchone()
+        
+        return cur.fetchall()
+
+def get_user_by_chat_id(chat_id: int):
+    return run_sql(f"SELECT name, last_name, login, chat_id, role_id FROM users WHERE chat_id={chat_id}", True)
 
 def save_user(user_info):
     with conn.cursor() as cur:
@@ -24,23 +32,17 @@ def save_user(user_info):
         return cur.fetchone()
     
 def get_langs():
-    with conn.cursor() as cur:
-        cur.execute(f"SELECT id, name, short_name FROM langs")
-        return cur.fetchall()
+    return run_sql(f"SELECT id, name, short_name FROM langs")
 
 def get_courses():
-    with conn.cursor() as cur:
-        cur.execute(f"SELECT id, name, code FROM courses")
-        return cur.fetchall()
+    return run_sql(f"SELECT id, name, code FROM courses")
 
 def get_roles():
-    with conn.cursor() as cur:
-        cur.execute(f"SELECT id, name FROM roles")
-        return cur.fetchall()
+    return run_sql(f"SELECT id, name FROM roles")
 
 def get_modules(user_id: int):
-    with conn.cursor() as cur:
-        cur.execute(f"""
+    return run_sql(
+        f"""
             WITH lang_modules AS (
             	SELECT
             		m.id AS module_id,
@@ -83,23 +85,22 @@ def get_modules(user_id: int):
             	m_ids.user_id = {user_id}
             	AND 
             	m_ids.cui = {user_id}
-        """)
-        return cur.fetchall()
+        """
+    )
     
 def get_themes_by_module_id(module_id: int):
-    with conn.cursor() as cur:
-        cur.execute(
-            f"""
-                SELECT
-                	id,
-                    name
-                FROM 
-                	themes t
-                WHERE
-                	module_id = {module_id}
-                ORDER BY t."order" ASC
-            """)
-        return cur.fetchall()
+    return run_sql(
+        f"""
+            SELECT
+            	id,
+                name
+            FROM 
+            	themes t
+            WHERE
+            	module_id = {module_id}
+            ORDER BY t."order" ASC
+        """
+    )
 
 
 """
@@ -110,33 +111,34 @@ def get_exercise(theme_id: int, prev_ex_id: int=None):
     if prev_ex_id:
         cut_cond += f"JOIN prev_ex_limit ON te.order > prev_ex_limit.order"
 
-    with conn.cursor() as cur:
-        cur.execute(
-            f"""
-                WITH theme_ex AS (
-                	SELECT 
-                	* 
-                	FROM
-                		exercise e
-                	WHERE theme_id = {theme_id} 
-                	ORDER BY e.order ASC
-                ), prev_ex_limit AS (
-                	SELECT
-                		CAST(e.order AS integer )
-                	FROM
-                		exercise e
-                	WHERE theme_id = {theme_id} AND id = {prev_ex_id or 1}
-                	ORDER BY e.order ASC
-                	LIMIT 1
-                )
-                SELECT
-                	*
-                FROM
-                	theme_ex te
-                {cut_cond}
-                LIMIT 1
-            """)
-        return cur.fetchone()
+    return run_sql(
+        f"""
+            WITH theme_ex AS (
+            	SELECT 
+            	* 
+            	FROM
+            		exercise e
+            	WHERE theme_id = {theme_id} 
+            	ORDER BY e.order ASC
+            ), prev_ex_limit AS (
+            	SELECT
+            		CAST(e.order AS integer )
+            	FROM
+            		exercise e
+            	WHERE theme_id = {theme_id} AND id = {prev_ex_id or 1}
+            	ORDER BY e.order ASC
+            	LIMIT 1
+            )
+            SELECT
+            	*
+            FROM
+            	theme_ex te
+            {cut_cond}
+            LIMIT 1
+        """,
+        True,
+        True
+    )
 
 def create_lang(name, short_name):
     with conn.cursor() as cur:
@@ -185,8 +187,4 @@ def set_user_lang(user_id: int, lang_id: int):
         )
 
 def get_user_langs(user_id: int):
-    with conn.cursor() as cur:
-        cur.execute(
-            f"SELECT * FROM users_langs LEFT JOIN langs ON langs.id = users_langs.lang_id WHERE user_id={user_id}"
-        )
-        return cur.fetchall()
+    return run_sql(f"SELECT * FROM users_langs LEFT JOIN langs ON langs.id = users_langs.lang_id WHERE user_id={user_id}")
