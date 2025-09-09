@@ -115,7 +115,7 @@ def get_exercise(theme_id: int, prev_ex_id: int=None):
         f"""
             WITH theme_ex AS (
                 SELECT
-                	row_number() OVER() AS row_n,
+                	row_number() OVER(ORDER BY e.order ASC) AS row_n,
                 	*
                 FROM
                 	exercise e
@@ -201,3 +201,21 @@ def set_user_lang(user_id: int, lang_id: int):
 
 def get_user_langs(user_id: int):
     return run_sql(f"SELECT * FROM users_langs LEFT JOIN langs ON langs.id = users_langs.lang_id WHERE user_id={user_id}")
+
+def get_user_answers(user_id: int):
+    return run_sql(
+        f"""
+            SELECT
+            	a.answer,
+            	e.another_data::json->>'success_answer'
+            FROM 
+            	answers a
+            JOIN
+            	exercise e 
+            ON 
+            	a.exercise_id = e.id
+            WHERE 
+            	e.type_id IN (1, 2, 4)
+            	AND a.user_id = {user_id}
+        """
+    )
