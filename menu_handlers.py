@@ -1,5 +1,6 @@
 from check_answers import lang_answer, course_answer, role_answer
 import markups
+from telebot import types
 from query import set_user_lang, upsert_settings, get_exercise, save_answer
 from exersise_handlers import ExersiseFactory
 
@@ -123,11 +124,12 @@ def theme_menu_handler(bot, users_state, user_id: int, text: str):
     current_theme_id = state[1]
     current_exersise_id = state[2]
 
-    save_answer(current_exersise_id, user_id, text)
+    if text != "Продолжить ➡️":
+        save_answer(current_exersise_id, user_id, text)
 
     ex = get_exercise(current_theme_id, current_exersise_id)
     if not ex:
-        bot.send_message(user_id, f"Поздравляем, вы закрыли тему 😊")
+        bot.send_message(user_id, f"Поздравляем, вы закрыли тему 😊", reply_markup=markups.get_next_markup())
         users_state[user_id] = 'main'
         return
     

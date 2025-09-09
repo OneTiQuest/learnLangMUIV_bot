@@ -79,3 +79,10 @@ def get_themes_markup(module_id: int):
         markup.add(types.InlineKeyboardButton(theme[1], callback_data=json.dumps({"type": "theme", "data": theme[0]})))
 
     return markup
+
+def get_next_markup():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+
+    markup.add(types.KeyboardButton("Продолжить ➡️"))
+
+    return markup

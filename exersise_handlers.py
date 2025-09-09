@@ -1,5 +1,6 @@
 import json
 from telebot import TeleBot, types
+import markups
 
 
 class Exersise():
@@ -29,11 +30,7 @@ class Exersise():
         self.bot.send_message(self.user_id, f"<b>{self.name}</b>\n\n{self.parse_data()}", reply_markup=self.gen_markup(), parse_mode="HTML")
         
     def gen_markup(self):
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-
-        markup.add(types.KeyboardButton("Продолжить ➡️"))
-
-        return markup
+        return markups.get_next_markup()
     
     def parse_data(self):
         if not self.data:
@@ -48,6 +45,8 @@ class MissingWord(Exersise):
     def __init__(self, exersise, bot: TeleBot, user_id):
         super().__init__(exersise, bot, user_id)
 
+    def send_message(self):
+        self.bot.send_message(self.user_id, f"<b>Отправьте пропущенное слово:</b>\n\n{self.name}", parse_mode="HTML", reply_markup=types.ReplyKeyboardRemove())
 
 """
 Правильный вариант
@@ -56,6 +55,16 @@ class CorrectOption(Exersise):
     def __init__(self, exersise, bot: TeleBot, user_id):
         super().__init__(exersise, bot, user_id)
 
+    def send_message(self):
+        self.bot.send_message(self.user_id, f"<b>Выберите правильный вариант ответа:</b>\n\n{self.name}", reply_markup=self.gen_markup(), parse_mode="HTML")
+
+    def gen_markup(self):
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+
+        for answer in self.data.get("answers"):
+            markup.add(types.KeyboardButton(f"{answer}"))
+
+        return markup
 
 """
 Аудио

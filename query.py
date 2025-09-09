@@ -109,30 +109,34 @@ def get_themes_by_module_id(module_id: int):
 def get_exercise(theme_id: int, prev_ex_id: int=None):
     cut_cond = ''
     if prev_ex_id:
-        cut_cond += f"JOIN prev_ex_limit ON te.order > prev_ex_limit.order"
+        cut_cond += f"JOIN prev_ex_limit pel ON te.row_n = pel.row_n + 1"
 
     return run_sql(
         f"""
             WITH theme_ex AS (
-            	SELECT 
-            	* 
-            	FROM
-            		exercise e
-            	WHERE theme_id = {theme_id} 
-            	ORDER BY e.order ASC
+                SELECT
+                	row_number() OVER() AS row_n,
+                	*
+                FROM
+                	exercise e
+                WHERE theme_id = {theme_id}
+                ORDER BY e.order ASC
             ), prev_ex_limit AS (
-            	SELECT
-            		CAST(e.order AS integer )
-            	FROM
-            		exercise e
-            	WHERE theme_id = {theme_id} AND id = {prev_ex_id or 1}
-            	ORDER BY e.order ASC
-            	LIMIT 1
+                SELECT
+            		row_n
+                FROM
+            		theme_ex
+                WHERE id = {prev_ex_id or 1}
             )
             SELECT
-            	*
+                te.id,
+                te.title,
+                te.order,
+                te.another_data,
+                te.theme_id,
+                te.type_id
             FROM
-            	theme_ex te
+                theme_ex te
             {cut_cond}
             LIMIT 1
         """,
@@ -146,7 +150,7 @@ def save_answer(ex_id: int, user_id: int, answer: str):
                 DELETE FROM answers WHERE exercise_id = {ex_id} AND user_id = {user_id};
                 INSERT INTO answers (exercise_id, user_id, answer) VALUES ({ex_id}, {user_id}, %s);
             """,
-            (answer)
+            (answer,)
         )
 
 def create_lang(name, short_name):
