@@ -1,6 +1,6 @@
 from check_answers import lang_answer, course_answer, role_answer
 import markups
-from query import set_user_lang, upsert_settings, get_exercise, save_answer, update_role, set_user_grade
+from query import set_user_lang, upsert_settings, get_exercise, save_answer, update_role, set_user_grade, get_teacer_stat
 from exersise_handlers import ExersiseFactory
 from scripts import calc_result
 import state
@@ -177,6 +177,7 @@ def teach_main_menu_handler(bot, user_id: int, text: str):
 
     elif text == "📊 Общая статистика":
         text_stat = '<b>Статистика по всем вашим модулям 📊:</b>\n\n'
+
         bot.send_message(user_id, text_stat, parse_mode="HTML")
 
     elif text == '⚙️ Настройки':

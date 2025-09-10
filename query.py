@@ -241,3 +241,58 @@ def update_role(user_id: int, role_id: int):
                 WHERE chat_id = {user_id}
             """
         )
+
+def get_teacer_stat(teacher_id: int):
+    return run_sql(
+        f"""
+            WITH cl AS (
+            	SELECT
+            		lang_id,
+            		(settings::json->>'course_id')::int AS course_id
+            	FROM
+            		users u
+            	JOIN
+            		users_langs ul
+            	ON u.chat_id = ul.user_id
+            	JOIN
+            		settings s
+            	ON
+            		s.user_id = u.chat_id 
+            	WHERE u.chat_id = {teacher_id}
+            ), modules_t AS (
+            	SELECT 
+            		m.id AS module_id,
+            		m.name AS module_name,
+            		json_agg(ex_by_themes) AS ex_by_themes
+            	FROM
+            		modules m
+            	JOIN
+            		courses_modules cm 
+            	ON m.id = cm.module_id
+            	JOIN
+            		cl
+            	ON cl.lang_id = m.lang_id 
+            	AND cl.course_id = cm.course_id 
+            	JOIN
+            		(
+            			SELECT
+            				t.id,
+            				t.name AS theme_name,
+            				t.module_id,
+            				json_agg((g.grade, u))
+            			FROM
+            				themes t
+            			JOIN
+            				grades g
+            			ON 	g.theme_id = t.id
+            			JOIN
+            				users u
+            			ON u.chat_id = g.user_id 
+            			GROUP BY t.id
+            		) AS ex_by_themes
+            	ON m.id = ex_by_themes.module_id
+            	GROUP BY m.id
+            )
+            SELECT * FROM modules_t 
+        """
+    )
