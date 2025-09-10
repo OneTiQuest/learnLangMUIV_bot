@@ -1,6 +1,6 @@
 from check_answers import lang_answer, course_answer, role_answer
 import markups
-from query import set_user_lang, upsert_settings, get_exercise, save_answer, update_role
+from query import set_user_lang, upsert_settings, get_exercise, save_answer, update_role, set_user_grade
 from exersise_handlers import ExersiseFactory
 from scripts import calc_result
 import state
@@ -37,6 +37,26 @@ def _2_step_handler(bot, user_id: int, text: str):
             user_id, 
             "Выбери пункт меню:", 
             reply_markup=markups.get_main_markup()
+        )
+
+    else:
+        bot.send_message(
+            user_id, 
+            "Смена курса обучения:", 
+            reply_markup=markups.get_course_markup()
+        )
+
+def _2_step_teacher_handler(bot, user_id: int, text: str):
+    answer = course_answer(text)
+    if answer:
+        upsert_settings(user_id, "course_id", answer[0])
+        bot.send_message(user_id, f'Текущий выбранный курс: {text}')
+
+        state.set_state(user_id, 'main')
+        bot.send_message(
+            user_id, 
+            "Выбери пункт меню:", 
+            reply_markup=markups.get_teacher_main_markup()
         )
 
     else:
@@ -121,7 +141,7 @@ def roles_menu_handler(bot, user_id: int, text: str):
 def module_menu_handler(bot, user_id: int, module_id: int):
     bot.send_message(user_id, "Выберите необходимую тему:", reply_markup=markups.get_themes_markup(module_id))
 
-def theme_menu_handler(bot, user_id: int, text: str):
+def theme_menu_handler(bot, user_id: int, text: str, theme_id: int):
     user_state = str(state.get_state(user_id)).split('/')
     current_theme_id = user_state[1]
     current_exersise_id = user_state[2]
@@ -131,7 +151,8 @@ def theme_menu_handler(bot, user_id: int, text: str):
 
     ex = get_exercise(current_theme_id, current_exersise_id)
     if not ex:
-        calc_result(bot, user_id)
+        grade = calc_result(bot, user_id)
+        set_user_grade(user_id, theme_id, grade)
         state.set_state(user_id, 'main')
         return
     

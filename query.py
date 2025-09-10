@@ -199,6 +199,16 @@ def set_user_lang(user_id: int, lang_id: int):
             (user_id, lang_id)
         )
 
+    
+def set_user_grade(user_id: int, theme_id: int, grade: int):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"\
+                DELETE FROM grades WHERE user_id={user_id} AND theme_id = {theme_id}; \
+                INSERT INTO grades (user_id, theme_id, grade) VALUES ({user_id}, {theme_id}, {grade}) \
+            "
+        )
+
 def get_user_langs(user_id: int):
     return run_sql(f"SELECT * FROM users_langs LEFT JOIN langs ON langs.id = users_langs.lang_id WHERE user_id={user_id}")
 

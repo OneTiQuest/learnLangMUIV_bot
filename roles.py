@@ -1,6 +1,6 @@
 from enum import Enum
 import state
-from scripts import student_start_script, select_theme_script
+from scripts import init_settings_script, select_theme_script
 import menu_handlers
 from telebot import TeleBot
 from menu_handlers import module_menu_handler
@@ -36,7 +36,11 @@ class Base():
 
     def message_handler(self, text: str):
         current_state = state.get_state(self.user_id)
-                
+
+        if not current_state:
+            init_settings_script(self.user_id)
+            current_state = state.get_state(self.user_id)
+
         # self.bot.send_message(self.user_id, f'Обрабатывается состояние: {current_state}')
 
         if text == "⬅️ Назад":
@@ -87,7 +91,13 @@ class Base():
             state.set_state(self.user_id, 'main')
 
     def navigation_handler(self, state, text):
-        if state == 'main':
+        if state == '1_step':
+            menu_handlers._1_step_handler(self.bot, self.user_id, text)
+
+        elif state == '2_step':
+            menu_handlers._2_step_handler(self.bot, self.user_id, text)
+
+        elif state == 'main':
             self.get_main_menu(text)
 
         elif state == 'course_menu':
@@ -119,28 +129,13 @@ class Student(Base):
     code = 'student'
     role = Roles.STUDENT
 
-    def __init__(self, bot: TeleBot, user_id: int):
-        super().__init__(bot, user_id)
-
-    def message_handler(self, text: str):
-        if not state.get_state(self.user_id):
-            student_start_script(self.user_id)
-
-        super().message_handler(text)
 
     def navigation_handler(self, state, text):
-
-        if state == '1_step':
-            menu_handlers._1_step_handler(self.bot, self.user_id, text)
-
-        elif state == '2_step':
-            menu_handlers._2_step_handler(self.bot, self.user_id, text)
-
-        elif state == 'lang_menu':
+        if state == 'lang_menu':
             menu_handlers.lang_menu_handler(self.bot, self.user_id, text)
 
         elif state.split('/')[0] == 'theme':
-            menu_handlers.theme_menu_handler(self.bot, self.user_id, text)
+            menu_handlers.theme_menu_handler(self.bot, self.user_id, text, int(state.split('/')[1]))
 
         else:
             super().navigation_handler(state, text)
@@ -150,21 +145,12 @@ class Teacher(Student):
     code = 'teacher'
     role = Roles.TEACH
 
-
-    def __init__(self, bot: TeleBot, user_id: int):
-        super().__init__(bot, user_id)
-
-
-    def message_handler(self, text: str):
-        if not state.get_state(self.user_id):
-            state.set_state(self.user_id, 'main')
-
-        super().message_handler(text)
-    
-
     def navigation_handler(self, state, text):
-        super().navigation_handler(state, text)
+        if state == '2_step':
+            menu_handlers._2_step_teacher_handler(self.bot, self.user_id, text)
 
+        else:
+            super().navigation_handler(state, text)
 
     def get_main_menu(self, text):
         menu_handlers.teach_main_menu_handler(self.bot, self.user_id, text)
@@ -178,19 +164,12 @@ class Admin(Teacher):
     code = 'admin'
     role = Roles.ADMIN
 
-    def __init__(self, bot: TeleBot, user_id: int):
-        super().__init__(bot, user_id)
-
 
     def message_handler(self, text: str):
         if not state.get_state(self.user_id):
             state.set_state(self.user_id, 'main')
 
         super().message_handler(text)
-    
-
-    def navigation_handler(self, state, text):
-        super().navigation_handler(state, text)
 
 
     def get_main_menu(self, text):

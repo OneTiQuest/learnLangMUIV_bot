@@ -4,7 +4,7 @@ import markups
 import state
 
 
-def student_start_script(user_id):
+def init_settings_script(user_id):
     user_has_lang = get_user_langs(user_id)
     user_has_course = upsert_settings(user_id)["course_id"]
 
@@ -61,3 +61,5 @@ def calc_result(bot, user_id: int):
         reply_markup=markups.get_next_markup(),
         parse_mode="HTML"
     )
+
+    return grade
