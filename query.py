@@ -85,6 +85,7 @@ def get_modules(user_id: int):
             	m_ids.user_id = {user_id}
             	AND 
             	m_ids.cui = {user_id}
+            ORDER BY id ASC
         """
     )
     
@@ -299,5 +300,24 @@ def get_teacer_stat(teacher_id: int):
             	GROUP BY m.id
             )
             SELECT * FROM modules_t 
+        """
+    )
+
+def get_users():
+    return run_sql(
+        f"""
+            SELECT
+            	u.chat_id,
+            	u.name,
+            	last_name,
+            	login,
+            	r.name AS role,
+            	created_at
+            FROM 
+            	users u
+            JOIN
+            	roles r 
+            ON
+            	r.id = u.role_id
         """
     )

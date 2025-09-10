@@ -1,6 +1,6 @@
 from check_answers import lang_answer, course_answer, role_answer
 import markups
-from query import set_user_lang, upsert_settings, get_exercise, save_answer, update_role, set_user_grade, get_teacer_stat
+from query import set_user_lang, upsert_settings, get_exercise, save_answer, update_role, set_user_grade, get_teacer_stat, get_users
 from exersise_handlers import ExersiseFactory
 from scripts import calc_result
 import state
@@ -183,7 +183,7 @@ def teach_main_menu_handler(bot, user_id: int, text: str):
 
         bot.send_message(user_id, text, reply_markup=mrkp)
 
-    elif text == "📊 Общая статистика":
+    elif text == "📊 Статистика оценок":
         text_stat = '<b>Статистика оценок по вашим модулям 📊:</b>\n\n'
         stat = get_teacer_stat(user_id)
 
@@ -232,6 +232,22 @@ def admin_main_menu_handler(bot, user_id: int, text: str):
     if text == '⚙️ Настройки':
         state.set_state(user_id, 'settings')
         bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_teacher_settings_markup())
+
+    if text == '📊 Сводка о пользователях':
+        u_text = "<b>Список пользователей</b>\n"
+
+        for user in get_users():
+            id, name, last_name, login, role, created_at = user
+            user_alias = ""
+            if last_name:
+                user_alias += f"{last_name} "
+            if name:
+                user_alias += f"{name} "
+            if login:
+                user_alias += f"({login})"
+            u_text += f"{user_alias} {role}. Создан: {created_at}\n"
+
+        bot.send_message(user_id, u_text, parse_mode="HTML")
 
     else:
         bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_admin_main_markup())

@@ -36,7 +36,7 @@ def calc_result(bot, user_id: int):
     s_a_counter = 0
 
     for u_a, s_a in answers:
-        if u_a == s_a:
+        if str(u_a).lower() == str(s_a).lower():
             s_a_counter += 1
 
     test_result = (s_a_counter * 100) / max_a

@@ -42,7 +42,7 @@ def get_teacher_main_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
         types.KeyboardButton("ℹ️ Модули"),
-        types.KeyboardButton("📊 Общая статистика"),
+        types.KeyboardButton("📊 Статистика оценок"),
         types.KeyboardButton("⚙️ Настройки"),
     )
         
@@ -53,6 +53,7 @@ def get_admin_main_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
         types.KeyboardButton("⚙️ Настройки"),
+        types.KeyboardButton("📊 Сводка о пользователях"),
     )
         
     return markup

@@ -34,6 +34,16 @@ def start(message):
     user.message_handler(message.text)
 
 
+# Обработчик команды /start
+@bot.message_handler(commands=["help"])
+def start(message):
+    user_id = message.chat.id
+    bot.send_message(
+           user_id,
+           f"1. Для начала работы с ботом напишите команду /start\n2. Навигация осуществляется по кнопкам выпадающего меню\n3. Для изменения роли пользователя перейдите в меню \"Настройки\""
+        )
+
+
 # Обработчик callback-запросов от инлайн кнопок
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
@@ -49,6 +59,7 @@ def handle_callback(call):
 def handle_message(message):
     user_id = message.chat.id
     user = auth_user(user_id, bot)
+    
 
     if not user:
         bot.send_message(user_id, "Пользователь не найден в системе. Для регистрации напишите комманду /start")
