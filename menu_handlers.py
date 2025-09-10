@@ -4,7 +4,6 @@ from query import set_user_lang, upsert_settings, get_exercise, save_answer, upd
 from exersise_handlers import ExersiseFactory
 from scripts import calc_result
 import state
-import json
 
 def _1_step_handler(bot, user_id: int, text: str):
     answer = lang_answer(text)
@@ -186,6 +185,10 @@ def teach_main_menu_handler(bot, user_id: int, text: str):
     elif text == "📊 Статистика оценок":
         text_stat = '<b>Статистика оценок по вашим модулям 📊:</b>\n\n'
         stat = get_teacer_stat(user_id)
+
+        if not stat:
+            bot.send_message(user_id, "Тестов по темам ваших модулей еще не решалось 😞")
+            return
 
         for module_id, module_name, themes in stat:
             module_stat_text = f"<b>{module_name}</b>\n"

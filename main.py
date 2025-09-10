@@ -24,7 +24,7 @@ def start(message):
 
     if not user:
         new_user = save_user(message.from_user)
-        user = auth_user(new_user[0], bot)
+        user = auth_user(new_user[3], bot)
         bot.send_message(
            user_id,
            f"Привет, {message.from_user.first_name}👋."
