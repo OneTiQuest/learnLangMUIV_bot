@@ -1,11 +1,20 @@
 import telebot as tb
 import json
-from scripts import auth_user
-from query import save_user
-
+from query import save_user, get_user_by_chat_id
+from roles import Base as BaseRole, get_user
 
 TOKEN = "8271309227:AAH22j-4-MzFHekEKSFECDBtyP05_3MC0yY"
 bot = tb.TeleBot(TOKEN)
+
+def auth_user(user_id: int, bot) -> BaseRole:
+    user = get_user_by_chat_id(user_id)
+
+    if not user:
+        return None
+
+    role = user[4]
+
+    return get_user(role, bot, user_id)
 
 # Обработчик команды /start
 @bot.message_handler(commands=["start"])

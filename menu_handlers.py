@@ -1,13 +1,13 @@
 from check_answers import lang_answer, course_answer, role_answer
 import markups
-from query import set_user_lang, upsert_settings, get_exercise, save_answer
+from query import set_user_lang, upsert_settings, get_exercise, save_answer, update_role
 from exersise_handlers import ExersiseFactory
 from scripts import calc_result
 import state
 
 
 def _1_step_handler(bot, user_id: int, text: str):
-    answer = lang_answer(bot, text)
+    answer = lang_answer(text)
     if answer:
         set_user_lang(user_id, answer[0])
         bot.send_message(user_id, f'Текущий язык для обучения: {text}')
@@ -27,7 +27,7 @@ def _1_step_handler(bot, user_id: int, text: str):
         )
 
 def _2_step_handler(bot, user_id: int, text: str):
-    answer = course_answer(bot, text)
+    answer = course_answer(text)
     if answer:
         upsert_settings(user_id, "course_id", answer[0])
         bot.send_message(user_id, f'Текущий выбранный курс: {text}')
@@ -68,7 +68,7 @@ def main_menu_handler(bot, user_id: int, text: str):
 
 
 def lang_menu_handler(bot, user_id: int, text: str):
-    answer = lang_answer(bot, text)
+    answer = lang_answer(text)
     if answer:
         set_user_lang(user_id, answer[0])
         bot.send_message(user_id, f'Текущий язык для обучения: {text}')
@@ -81,7 +81,7 @@ def lang_menu_handler(bot, user_id: int, text: str):
 
 
 def course_menu_handler(bot, user_id: int, text: str):
-    answer = course_answer(bot, text)
+    answer = course_answer(text)
     if answer:
         upsert_settings(user_id, "course_id", answer[0])
         bot.send_message(user_id, f'Текущий выбранный курс: {text}')
@@ -109,10 +109,11 @@ def settings_menu_handler(bot, user_id: int, text: str):
         bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_settings_markup())
 
 def roles_menu_handler(bot, user_id: int, text: str):
-    answer = role_answer(bot, text)
+    answer = role_answer(text)
     if answer:
-        state.set_state(user_id, 'settings')
-        bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_settings_markup())
+        update_role(user_id, answer[0])
+        state.set_state(user_id, None)
+        bot.send_message(user_id, "Ваша роль успешно изменилась", reply_markup=markups.get_next_markup())
         
     else:
         bot.send_message(user_id, "Выберите желаемую роль:", reply_markup=markups.get_roles_markup())
@@ -138,3 +139,45 @@ def theme_menu_handler(bot, user_id: int, text: str):
 
     next_exersise_id = ex[0]
     state.set_state(user_id, f"theme/{current_theme_id}/{next_exersise_id}")
+
+
+def teach_main_menu_handler(bot, user_id: int, text: str):
+    if text == 'ℹ️ Модули':
+        mrkp = markups.get_modules_markup(user_id)
+
+        isEmpty = not mrkp.to_dict().get('inline_keyboard')
+        
+        text = "Выберите нужный модуль:"
+
+        if isEmpty:
+            text = "К сожалению доступных модулей для вашего языка и курса не найдено :("
+
+        bot.send_message(user_id, text, reply_markup=mrkp)
+
+    elif text == "📊 Общая статистика":
+        text_stat = '<b>Статистика по всем вашим модулям 📊:</b>\n\n'
+        bot.send_message(user_id, text_stat, parse_mode="HTML")
+
+    elif text == '⚙️ Настройки':
+        state.set_state(user_id, 'settings')
+        bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_teacher_settings_markup())
+
+    else:
+        bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_teacher_main_markup())
+
+
+def admin_main_menu_handler(bot, user_id: int, text: str):
+    if text == '⚙️ Настройки':
+        state.set_state(user_id, 'settings')
+        bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_teacher_settings_markup())
+
+    else:
+        bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_admin_main_markup())
+
+def teacher_settings_menu_handler(bot, user_id: int, text: str):
+    if text == "Изменить роль (тестовая функция)":
+        state.set_state(user_id, 'roles')
+        bot.send_message(user_id, "Выберите желаемую роль:", reply_markup=markups.get_roles_markup())
+        
+    else:
+        bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_teacher_settings_markup())

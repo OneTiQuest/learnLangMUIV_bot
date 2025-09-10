@@ -219,3 +219,15 @@ def get_user_answers(user_id: int):
             	AND a.user_id = {user_id}
         """
     )
+
+def update_role(user_id: int, role_id: int):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+                UPDATE 
+                    users 
+                SET 
+                    role_id = {role_id} 
+                WHERE chat_id = {user_id}
+            """
+        )

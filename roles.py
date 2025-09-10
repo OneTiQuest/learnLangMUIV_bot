@@ -1,6 +1,5 @@
 from enum import Enum
 import state
-import navigation
 from scripts import student_start_script, select_theme_script
 import menu_handlers
 from telebot import TeleBot
@@ -18,7 +17,7 @@ def get_user(role: Roles, bot, user_id: int):
     
     # Обработка преподавателя
     elif role == 2:
-        return Teach(bot, user_id)
+        return Teacher(bot, user_id)
     
     # Обработка администратора
     elif role == 3:
@@ -38,7 +37,7 @@ class Base():
     def message_handler(self, text: str):
         current_state = state.get_state(self.user_id)
                 
-        self.bot.send_message(self.user_id, f'Обрабатывается состояние: {current_state}')
+        # self.bot.send_message(self.user_id, f'Обрабатывается состояние: {current_state}')
 
         if text == "⬅️ Назад":
             self.go_back(current_state)
@@ -115,6 +114,7 @@ class Base():
     def get_roles_menu(self, text):
         menu_handlers.roles_menu_handler(self.bot, self.user_id, text)
 
+
 class Student(Base):
     code = 'student'
     role = Roles.STUDENT
@@ -145,29 +145,57 @@ class Student(Base):
         else:
             super().navigation_handler(state, text)
 
-class Teach(Student):
-    code = 'teach'
+
+class Teacher(Student):
+    code = 'teacher'
     role = Roles.TEACH
+
 
     def __init__(self, bot: TeleBot, user_id: int):
         super().__init__(bot, user_id)
 
+
     def message_handler(self, text: str):
         if not state.get_state(self.user_id):
             state.set_state(self.user_id, 'main')
 
         super().message_handler(text)
+    
+
+    def navigation_handler(self, state, text):
+        super().navigation_handler(state, text)
 
 
-class Admin(Teach):
+    def get_main_menu(self, text):
+        menu_handlers.teach_main_menu_handler(self.bot, self.user_id, text)
+
+
+    def get_settings_menu(self, text):
+        menu_handlers.teacher_settings_menu_handler(self.bot, self.user_id, text)
+
+
+class Admin(Teacher):
     code = 'admin'
     role = Roles.ADMIN
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, bot: TeleBot, user_id: int):
+        super().__init__(bot, user_id)
+
 
     def message_handler(self, text: str):
         if not state.get_state(self.user_id):
             state.set_state(self.user_id, 'main')
 
         super().message_handler(text)
+    
+
+    def navigation_handler(self, state, text):
+        super().navigation_handler(state, text)
+
+
+    def get_main_menu(self, text):
+        menu_handlers.admin_main_menu_handler(self.bot, self.user_id, text)
+
+
+    def get_settings_menu(self, text):
+        menu_handlers.teacher_settings_menu_handler(self.bot, self.user_id, text)

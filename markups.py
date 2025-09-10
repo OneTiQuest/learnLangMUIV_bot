@@ -38,6 +38,37 @@ def get_main_markup():
 
 
 # Предложение выбора кнопок для ученика
+def get_teacher_main_markup():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    markup.add(
+        types.KeyboardButton("ℹ️ Модули"),
+        types.KeyboardButton("📊 Общая статистика"),
+        types.KeyboardButton("⚙️ Настройки"),
+    )
+        
+    return markup
+
+# Предложение выбора кнопок для ученика
+def get_admin_main_markup():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    markup.add(
+        types.KeyboardButton("⚙️ Настройки"),
+    )
+        
+    return markup
+
+
+# Предложение выбора кнопок для ученика
+def get_teacher_settings_markup():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    markup.add(
+        types.KeyboardButton("Изменить роль (тестовая функция)"),
+        types.KeyboardButton("⬅️ Назад"),
+    )
+        
+    return markup
+
+# Предложение выбора кнопок для ученика
 def get_settings_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(

@@ -2,8 +2,7 @@ from query import upsert_settings, get_user_langs, get_exercise, get_user_answer
 from exersise_handlers import ExersiseFactory
 import markups
 import state
-from roles import Base as BaseRole, get_user
-from query import get_user_by_chat_id, save_user
+
 
 def student_start_script(user_id):
     user_has_lang = get_user_langs(user_id)
@@ -18,6 +17,7 @@ def student_start_script(user_id):
     else:
         state.set_state(user_id, 'main')
 
+
 def select_theme_script(bot, theme_id, user_id):
     first_exersise = get_exercise(theme_id)
     if not first_exersise:
@@ -28,6 +28,7 @@ def select_theme_script(bot, theme_id, user_id):
     state.set_state(user_id, f"theme/{theme_id}/{first_exersise[0]}")
 
     ExersiseFactory.create_exersise(first_exersise, bot, user_id).send()
+
 
 def calc_result(bot, user_id: int):
     answers = get_user_answers(user_id)
@@ -60,14 +61,3 @@ def calc_result(bot, user_id: int):
         reply_markup=markups.get_next_markup(),
         parse_mode="HTML"
     )
-
-
-def auth_user(user_id: int, bot) -> BaseRole:
-    user = get_user_by_chat_id(user_id)
-
-    if not user:
-        return None
-
-    role = user[4]
-
-    return get_user(role, bot, user_id)
