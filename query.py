@@ -277,9 +277,14 @@ def get_teacer_stat(teacher_id: int):
             		(
             			SELECT
             				t.id,
-            				t.name AS theme_name,
-            				t.module_id,
-            				json_agg((g.grade, u))
+				            t.name AS theme_name,
+				            t.module_id,
+				            json_agg(
+				            	json_build_object(
+				            		'grade', g.grade, 
+				            		'user', u
+				            	)
+				            ) as grades_data
             			FROM
             				themes t
             			JOIN

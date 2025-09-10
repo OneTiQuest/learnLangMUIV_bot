@@ -54,6 +54,16 @@ def handle_message(message):
 
     user.message_handler(message.text)
 
+@bot.stic
+def handle_message(message):
+    user_id = message.chat.id
+    user = auth_user(user_id, bot)
+
+    if not user:
+        bot.send_message(user_id, "Пользователь не найден в системе. Для регистрации напишите комманду /start")
+
+    user.message_handler(message.text)
+
 # Запуск бота
 if __name__ == "__main__":
     bot.infinity_polling()

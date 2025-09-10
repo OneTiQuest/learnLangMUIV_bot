@@ -4,7 +4,7 @@ from query import set_user_lang, upsert_settings, get_exercise, save_answer, upd
 from exersise_handlers import ExersiseFactory
 from scripts import calc_result
 import state
-
+import json
 
 def _1_step_handler(bot, user_id: int, text: str):
     answer = lang_answer(text)
@@ -176,7 +176,39 @@ def teach_main_menu_handler(bot, user_id: int, text: str):
         bot.send_message(user_id, text, reply_markup=mrkp)
 
     elif text == "📊 Общая статистика":
-        text_stat = '<b>Статистика по всем вашим модулям 📊:</b>\n\n'
+        text_stat = '<b>Статистика оценок по вашим модулям 📊:</b>\n\n'
+        stat = get_teacer_stat(user_id)
+
+        for module_id, module_name, themes in stat:
+            module_stat_text = f"<b>{module_name}</b>\n"
+
+            for theme_data in themes:
+                theme_stat_text = f"ㅤ<i>{theme_data.get('theme_name')}</i>\n"
+
+                for grade in theme_data.get("grades_data"):
+                    user = grade.get("user")
+                    grade = grade.get("grade")
+                    last_name = user.get('last_name')
+                    name = user.get('name')
+                    login = user.get('login')
+
+                    user_alias = ""
+                    if last_name:
+                        user_alias += f"{last_name} "
+                    if name:
+                        user_alias += f"{name} "
+                    if login:
+                        user_alias += f"({login})"
+
+                    grade_stat_text = f"ㅤㅤ{user_alias} - {grade}\n"
+
+                    theme_stat_text += grade_stat_text
+
+                theme_stat_text += '\n'
+                module_stat_text += theme_stat_text
+
+            module_stat_text += '\n'
+            text_stat += module_stat_text
 
         bot.send_message(user_id, text_stat, parse_mode="HTML")
 

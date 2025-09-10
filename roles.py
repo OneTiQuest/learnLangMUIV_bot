@@ -25,14 +25,16 @@ def get_user(role: Roles, bot, user_id: int):
     
     else:
         raise ValueError(f"Не удалось обработать роль: {role}")
-        
+
 class Base():
     user_id: int
     bot: TeleBot
     
+    
     def __init__(self, bot: TeleBot, user_id: int):
         self.user_id = user_id
         self.bot = bot
+
 
     def message_handler(self, text: str):
         current_state = state.get_state(self.user_id)
@@ -49,21 +51,12 @@ class Base():
 
         self.navigation_handler(current_state, text)
 
+
     def call_handler(self, call_data: dict):
-        user_state = state.get_state(self.user_id)
-        if not user_state:
-            return
-
-        if user_state.split('/')[0] == "theme":
-            self.bot.send_message(self.user_id, "Сначала пройдите текущую тему : )")
-            return
-
         if call_data.get("type") == "module":
             module_menu_handler(self.bot, self.user_id, call_data.get("data"))
 
-        if call_data.get("type") == "theme":
-            select_theme_script(self.bot, call_data.get("data"), self.user_id)
-    
+
     # Обработка кнопки "Назад"
     def go_back(self, current_state: str):
         if current_state == "main":
@@ -90,6 +83,7 @@ class Base():
         else:
             state.set_state(self.user_id, 'main')
 
+
     def navigation_handler(self, state, text):
         if state == '1_step':
             menu_handlers._1_step_handler(self.bot, self.user_id, text)
@@ -115,11 +109,14 @@ class Base():
     def get_main_menu(self, text):
         menu_handlers.main_menu_handler(self.bot, self.user_id, text)
 
+
     def get_settings_menu(self, text):
         menu_handlers.settings_menu_handler(self.bot, self.user_id, text)
 
+
     def get_courses_menu(self, text):
         menu_handlers.course_menu_handler(self.bot, self.user_id, text)
+
 
     def get_roles_menu(self, text):
         menu_handlers.roles_menu_handler(self.bot, self.user_id, text)
@@ -128,6 +125,16 @@ class Base():
 class Student(Base):
     code = 'student'
     role = Roles.STUDENT
+
+    def call_handler(self, call_data: dict):
+        if str(state.get_state(self.user_id)).split('/')[0] == "theme":
+            self.bot.send_message(self.user_id, "Сначала пройдите текущую тему : )")
+
+        elif call_data.get("type") == "theme":
+            select_theme_script(self.bot, call_data.get("data"), self.user_id)
+
+        else:
+            super().call_handler(call_data)
 
 
     def navigation_handler(self, state, text):
@@ -145,12 +152,21 @@ class Teacher(Student):
     code = 'teacher'
     role = Roles.TEACH
 
+    def call_handler(self, call_data: dict):
+        if call_data.get("type") == "theme":
+            self.bot.send_message(self.user_id, "Выбрана тема")
+
+        else:
+            super().call_handler(call_data)
+
+
     def navigation_handler(self, state, text):
         if state == '2_step':
             menu_handlers._2_step_teacher_handler(self.bot, self.user_id, text)
 
         else:
             super().navigation_handler(state, text)
+
 
     def get_main_menu(self, text):
         menu_handlers.teach_main_menu_handler(self.bot, self.user_id, text)
