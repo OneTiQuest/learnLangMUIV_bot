@@ -139,7 +139,15 @@ def roles_menu_handler(bot, user_id: int, text: str):
         bot.send_message(user_id, "Выберите желаемую роль:", reply_markup=markups.get_roles_markup())
 
 def module_menu_handler(bot, user_id: int, module_id: int):
-    bot.send_message(user_id, "Выберите необходимую тему:", reply_markup=markups.get_themes_markup(module_id))
+    mrkp = markups.get_themes_markup(module_id)
+
+    isEmpty = not mrkp.to_dict().get('inline_keyboard')
+
+    text = "Выберите необходимую тему:"
+    if isEmpty:
+        text = "К сожалению доступных тем для данного модуля еще не добавили 😞"
+
+    bot.send_message(user_id, text, reply_markup=mrkp)
 
 def theme_menu_handler(bot, user_id: int, text: str, theme_id: int):
     user_state = str(state.get_state(user_id)).split('/')
@@ -171,7 +179,7 @@ def teach_main_menu_handler(bot, user_id: int, text: str):
         text = "Выберите нужный модуль:"
 
         if isEmpty:
-            text = "К сожалению доступных модулей для вашего языка и курса не найдено :("
+            text = "К сожалению доступных модулей для вашего языка и курса не найдено 😞"
 
         bot.send_message(user_id, text, reply_markup=mrkp)
 
