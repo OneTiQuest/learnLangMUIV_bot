@@ -236,7 +236,7 @@ def admin_main_menu_handler(bot, user_id: int, text: str):
         state.set_state(user_id, 'settings')
         bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_teacher_settings_markup())
 
-    if text == '📊 Сводка о пользователях':
+    elif text == '📊 Сводка о пользователях':
         u_text = "<b>Список пользователей</b>\n"
 
         for user in get_users():

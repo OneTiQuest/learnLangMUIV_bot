@@ -190,7 +190,3 @@ class Admin(Teacher):
 
     def get_main_menu(self, text):
         menu_handlers.admin_main_menu_handler(self.bot, self.user_id, text)
-
-
-    def get_settings_menu(self, text):
-        menu_handlers.teacher_settings_menu_handler(self.bot, self.user_id, text)
