@@ -36,7 +36,7 @@ def start(message):
 
 # Обработчик команды /start
 @bot.message_handler(commands=["help"])
-def start(message):
+def help(message):
     user_id = message.chat.id
     bot.send_message(
         user_id,
