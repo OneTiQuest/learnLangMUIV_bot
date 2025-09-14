@@ -6,6 +6,7 @@ from roles import Base as BaseRole, get_user
 TOKEN = "8271309227:AAH22j-4-MzFHekEKSFECDBtyP05_3MC0yY"
 bot = tb.TeleBot(TOKEN)
 
+# Авторизация пользователя в системе
 def auth_user(user_id: int, bot) -> BaseRole:
     user = get_user_by_chat_id(user_id)
 
@@ -34,7 +35,7 @@ def start(message):
     user.message_handler(message.text)
 
 
-# Обработчик команды /start
+# Обработчик команды /help
 @bot.message_handler(commands=["help"])
 def help(message):
     user_id = message.chat.id

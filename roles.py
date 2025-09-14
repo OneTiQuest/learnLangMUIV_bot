@@ -26,6 +26,7 @@ def get_user(role: Roles, bot, user_id: int):
     else:
         raise ValueError(f"Не удалось обработать роль: {role}")
 
+# Базовый класс пользователя
 class Base():
     user_id: int
     bot: TeleBot
@@ -36,6 +37,7 @@ class Base():
         self.bot = bot
 
 
+    # Обработка текстовых сообщений
     def message_handler(self, text: str):
         current_state = state.get_state(self.user_id)
 
@@ -52,6 +54,7 @@ class Base():
         self.navigation_handler(current_state, text)
 
 
+    # Обработка inline-кнопок
     def call_handler(self, call_data: dict):
         if call_data.get("type") == "module":
             module_menu_handler(self.bot, self.user_id, call_data.get("data"))
@@ -83,7 +86,7 @@ class Base():
         else:
             state.set_state(self.user_id, 'main')
 
-
+    # Обработка текущего состояния и действий пользователя
     def navigation_handler(self, state, text):
         if state == '1_step':
             menu_handlers._1_step_handler(self.bot, self.user_id, text)
@@ -121,7 +124,7 @@ class Base():
     def get_roles_menu(self, text):
         menu_handlers.roles_menu_handler(self.bot, self.user_id, text)
 
-
+# Класс пользователя - студента
 class Student(Base):
     code = 'student'
     role = Roles.STUDENT
@@ -148,6 +151,7 @@ class Student(Base):
             super().navigation_handler(state, text)
 
 
+# Класс пользователя - учителя
 class Teacher(Student):
     code = 'teacher'
     role = Roles.TEACH
@@ -176,6 +180,7 @@ class Teacher(Student):
         menu_handlers.teacher_settings_menu_handler(self.bot, self.user_id, text)
 
 
+# Класс пользователя - администратора
 class Admin(Teacher):
     code = 'admin'
     role = Roles.ADMIN
