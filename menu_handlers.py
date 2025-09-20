@@ -1,4 +1,4 @@
-from check_answers import lang_answer, course_answer, role_answer
+from check_answers import lang_answer, course_answer, role_answer, module_answer
 import markups
 from query import set_user_lang, upsert_settings, get_exercise, save_answer, update_role, set_user_grade, get_teacer_stat, get_users
 from exersise_handlers import ExersiseFactory
@@ -259,6 +259,92 @@ def teacher_settings_menu_handler(bot, user_id: int, text: str):
     if text == "Изменить роль (тестовая функция)":
         state.set_state(user_id, 'roles')
         bot.send_message(user_id, "Выберите желаемую роль:", reply_markup=markups.get_roles_markup())
-        
+
+    elif text == "⚙️ Редактировать":
+        state.set_state(user_id, 'edit_module')
+        bot.send_message(user_id, "Выберите действие с модулем:", reply_markup=markups.get_edit_module_markup())
+
     else:
         bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_teacher_settings_markup())
+
+
+def edit_module_menu_handler(bot, user_id: int, text: str):
+    if text == "➕ Создать модуль":
+        state.set_state(user_id, 'create_module')
+        bot.send_message(user_id, "Введите название нового модуля:", reply_markup=markups.remove_markup())
+
+    elif text == "✏️ Изменить модуль":
+        bot.send_message(user_id, "Выберите модуль для изменения:", reply_markup=markups.get_modules_markup(user_id))
+
+    else:
+        bot.send_message(user_id, "Выберите действие с модулем:", reply_markup=markups.get_edit_module_markup())
+
+
+def edit_theme_menu_handler(bot, user_id: int, text: str, module_id: int = None):
+    if text == "➕ Создать тему":
+        state.set_state(user_id, 'create_theme')
+        bot.send_message(user_id, "Введите название новой темы:", reply_markup=markups.remove_markup())
+
+    elif text == "✏️ Изменить тему":
+        state.set_state(user_id, 'edit_theme')
+        bot.send_message(user_id, "Выберите тему для изменения:", reply_markup=markups.get_themes_markup(module_id))
+
+    else:
+        bot.send_message(user_id, f"Выберите действие с темой:", reply_markup=markups.get_edit_theme_markup())
+
+def edit_exersise_menu_handler(bot, user_id: int, text: str, module_id: int = None):
+    if text == "➕ Создать упражнение":
+        state.set_state(user_id, 'create_exersise')
+        bot.send_message(user_id, "Введите название новой темы:", reply_markup=markups.remove_markup())
+
+    elif text == "✏️ Изменить упражнение":
+        state.set_state(user_id, 'edit_theme')
+        bot.send_message(user_id, "Выберите тему для изменения:", reply_markup=markups.get_themes_markup(module_id))
+
+    else:
+        bot.send_message(user_id, f"Выберите действие с темой:", reply_markup=markups.get_edit_theme_markup())
+
+def create_handler(bot, user_id: int, text: str, create_type: str):
+    if create_type == "module":
+        state.set_state(user_id, 'edit_module')
+        bot.send_message(user_id, f"Создан модуль: {text}", reply_markup=markups.get_next_markup())
+
+    elif create_type == "theme":
+        state.set_state(user_id, 'edit_module')
+        bot.send_message(user_id, f"Создана тема: {text}", reply_markup=markups.get_next_markup())
+
+
+def edit_module_handler(bot, user_id: int, text, module_id: int = None):
+    if text == "✏️ Изменить":
+        pass
+    
+    elif text == "❌ Удалить":
+        pass
+
+    elif text == "Редактировать содержимое":
+        state.set_state(user_id, f'edit_module_child/{module_id}')
+        edit_theme_menu_handler(bot, user_id, None)
+        
+    else:
+        if module_id:
+            state.set_state(user_id, f'edit_module/{module_id}')
+
+        bot.send_message(user_id, f"Выберите действие с модулем:", reply_markup=markups.get_edit_object_markup())
+
+
+def edit_theme_handler(bot, user_id: int, text, theme_id: int):
+    if text == "✏️ Изменить":
+        pass
+    
+    elif text == "❌ Удалить":
+        pass
+
+    elif text == "Редактировать содержимое":
+        # Вывод упражнений
+        state.set_state(user_id, f'edit_theme_child/{theme_id}')
+        
+    else:
+        if theme_id:
+            state.set_state(user_id, f'edit_theme/{theme_id}')
+
+        bot.send_message(user_id, f"Выберите действие с темой:", reply_markup=markups.get_edit_object_markup(False))

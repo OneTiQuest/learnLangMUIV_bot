@@ -3,7 +3,6 @@ import state
 from scripts import init_settings_script, select_theme_script
 import menu_handlers
 from telebot import TeleBot
-from menu_handlers import module_menu_handler
 
 class Roles(Enum):
     STUDENT = 1
@@ -45,7 +44,7 @@ class Base():
             init_settings_script(self.user_id)
             current_state = state.get_state(self.user_id)
 
-        # self.bot.send_message(self.user_id, f'Обрабатывается состояние: {current_state}')
+        self.bot.send_message(self.user_id, f'Обрабатывается состояние: {current_state}')
 
         if text == "⬅️ Назад":
             self.go_back(current_state)
@@ -56,12 +55,15 @@ class Base():
 
     # Обработка inline-кнопок
     def call_handler(self, call_data: dict):
-        if call_data.get("type") == "module":
-            module_menu_handler(self.bot, self.user_id, call_data.get("data"))
+        if state.get_state(self.user_id) == 'main' and call_data.get("type") == "module":
+            menu_handlers.module_menu_handler(self.bot, self.user_id, call_data.get("data"))
 
 
     # Обработка кнопки "Назад"
     def go_back(self, current_state: str):
+
+        self.bot.send_message(self.user_id, current_state)
+
         if current_state == "main":
             state.set_state(self.user_id, 'main')
 
@@ -73,6 +75,18 @@ class Base():
 
         elif current_state == "settings":
             state.set_state(self.user_id, 'main')
+
+        elif current_state == "edit_module":
+            state.set_state(self.user_id, 'settings')
+
+        elif current_state.split("/")[0] == "edit_module":
+            state.set_state(self.user_id, 'edit_module')
+
+        elif current_state.split("/")[0] == "edit_theme":
+            state.set_state(self.user_id, 'edit_module')
+
+        elif current_state.split("/")[0] == "edit_module_child":
+            state.set_state(self.user_id, f'edit_module/{current_state.split("/")[1]}')
 
         elif current_state == "roles":
             state.set_state(self.user_id, 'settings')
@@ -157,7 +171,22 @@ class Teacher(Student):
     role = Roles.TEACH
 
     def call_handler(self, call_data: dict):
-        if call_data.get("type") == "theme":
+        current_state = str(state.get_state(self.user_id))
+        split_state = current_state.split('/')
+
+        if split_state[0] == "edit_theme" and len(split_state) > 1:
+            self.bot.send_message(self.user_id, "Закончите процесс изменения темы")
+
+        elif split_state[0] == "edit_module" and len(split_state) > 1:
+            self.bot.send_message(self.user_id, "Закончите процесс изменения модуля")
+
+        elif current_state == 'edit_module':
+            menu_handlers.edit_module_handler(self.bot, self.user_id, None, call_data.get("data"))
+
+        elif current_state == 'edit_theme':
+            menu_handlers.edit_theme_handler(self.bot, self.user_id, None, call_data.get("data"))
+
+        elif call_data.get("type") == "theme":
             self.bot.send_message(self.user_id, "Выбрана тема")
 
         else:
@@ -167,6 +196,27 @@ class Teacher(Student):
     def navigation_handler(self, state, text):
         if state == '2_step':
             menu_handlers._2_step_teacher_handler(self.bot, self.user_id, text)
+
+        elif state == 'edit':
+            menu_handlers.edit_module_menu_handler(self.bot, self.user_id, text)
+
+        elif state == 'create_module':
+            menu_handlers.create_handler(self.bot, self.user_id, text, "module")
+
+        elif state == 'create_theme':
+            menu_handlers.create_handler(self.bot, self.user_id, text, "theme")
+
+        elif state == 'edit_module':
+            menu_handlers.edit_module_menu_handler(self.bot, self.user_id, text)
+
+        elif state.split('/')[0] == 'edit_module':
+            menu_handlers.edit_module_handler(self.bot, self.user_id, text, int(state.split('/')[1]))
+
+        elif state.split('/')[0] == 'edit_module_child':
+            menu_handlers.edit_theme_menu_handler(self.bot, self.user_id, text, int(state.split('/')[1]))
+
+        elif state.split('/')[0] == 'edit_theme':
+            menu_handlers.edit_theme_handler(self.bot, self.user_id, text, int(state.split('/')[1]))
 
         else:
             super().navigation_handler(state, text)

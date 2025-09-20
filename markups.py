@@ -25,6 +25,53 @@ def get_course_markup():
 
     return markup
 
+# Предложение выбора кнопок редактирования
+def get_edit_module_markup():
+    # Создаем клавиатуру
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    markup.add(
+        types.KeyboardButton(f"➕ Создать модуль"),
+        types.KeyboardButton(f"✏️ Изменить модуль")
+    )
+    
+    markup.add(types.KeyboardButton("⬅️ Назад"))
+
+    return markup
+
+# Предложение выбора кнопок редактирования
+def get_edit_theme_markup():
+    # Создаем клавиатуру
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    markup.add(
+        types.KeyboardButton(f"➕ Создать тему"),
+        types.KeyboardButton(f"✏️ Изменить тему"),
+        types.KeyboardButton("⬅️ Назад")
+    )
+
+    return markup
+
+# Предложение выбора кнопок редактирования модуля
+def get_edit_object_markup(add_back: bool=True):
+    # Создаем клавиатуру
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+
+    markup.row(
+        types.KeyboardButton(f"✏️ Изменить"),
+        types.KeyboardButton(f"❌ Удалить")
+    )
+
+    if add_back:
+        markup.row(
+            types.KeyboardButton(f"Редактировать содержимое"),
+            types.KeyboardButton("⬅️ Назад")
+        )
+    else:
+        markup.row(
+            types.KeyboardButton(f"Редактировать содержимое")
+        )
+
+    return markup
+
 
 # Предложение выбора кнопок для ученика
 def get_main_markup():
@@ -63,6 +110,7 @@ def get_teacher_settings_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
         types.KeyboardButton("Изменить роль (тестовая функция)"),
+        types.KeyboardButton("⚙️ Редактировать"),
         types.KeyboardButton("⬅️ Назад"),
     )
         
@@ -92,6 +140,8 @@ def get_roles_markup():
 
     return markup
 
+def remove_markup():
+    return types.ReplyKeyboardRemove()
 
 # Предложение выбора модулей
 def get_modules_markup(user_id: int):

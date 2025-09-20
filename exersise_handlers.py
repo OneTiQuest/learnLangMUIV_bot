@@ -46,7 +46,7 @@ class MissingWord(Exersise):
         super().__init__(exersise, bot, user_id)
 
     def send_message(self):
-        self.bot.send_message(self.user_id, f"<b>Отправьте пропущенное слово:</b>\n\n{self.name}", parse_mode="HTML", reply_markup=types.ReplyKeyboardRemove())
+        self.bot.send_message(self.user_id, f"<b>Отправьте пропущенное слово:</b>\n\n{self.name}", parse_mode="HTML", reply_markup=markups.remove_markup())
 
 """
 Правильный вариант
