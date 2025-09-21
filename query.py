@@ -321,3 +321,71 @@ def get_users():
             	r.id = u.role_id
         """
     )
+
+def get_exersises(theme_id: int):
+    return run_sql(
+        f"""
+            SELECT 
+                *
+            FROM
+                exercise e 
+            WHERE
+                e.theme_id = {theme_id}
+        """
+    )
+
+def update_module(module_id: int, name: str):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+                UPDATE 
+                    modules 
+                SET 
+                    name='{name}' 
+                WHERE id = {module_id}
+            """
+        )
+
+def update_theme(theme_id: int, name: str):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+                UPDATE 
+                    themes
+                SET 
+                    name='{name}' 
+                WHERE id = {theme_id}
+            """
+        )
+
+def delete_module(module_id: int):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+                DELETE FROM modules WHERE id = {module_id}
+            """
+        )
+
+def delete_theme(theme_id: int):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+                DELETE FROM themes WHERE id = {theme_id}
+            """
+        )
+
+def create_module(name: str):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+                
+            """
+        )
+
+def create_theme(name: str):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+                
+            """
+        )

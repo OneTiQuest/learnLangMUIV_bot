@@ -3,7 +3,7 @@ import json
 from query import save_user, get_user_by_chat_id
 from roles import Base as BaseRole, get_user
 
-TOKEN = "8271309227:AAH22j-4-MzFHekEKSFECDBtyP05_3MC0yY"
+TOKEN = ""
 bot = tb.TeleBot(TOKEN)
 
 # Авторизация пользователя в системе

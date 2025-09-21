@@ -44,7 +44,7 @@ class Base():
             init_settings_script(self.user_id)
             current_state = state.get_state(self.user_id)
 
-        self.bot.send_message(self.user_id, f'Обрабатывается состояние: {current_state}')
+        # self.bot.send_message(self.user_id, f'Обрабатывается состояние: {current_state}')
 
         if text == "⬅️ Назад":
             self.go_back(current_state)
@@ -62,7 +62,7 @@ class Base():
     # Обработка кнопки "Назад"
     def go_back(self, current_state: str):
 
-        self.bot.send_message(self.user_id, current_state)
+        # self.bot.send_message(self.user_id, current_state)
 
         if current_state == "main":
             state.set_state(self.user_id, 'main')
@@ -82,11 +82,17 @@ class Base():
         elif current_state.split("/")[0] == "edit_module":
             state.set_state(self.user_id, 'edit_module')
 
+        elif current_state == "edit_theme":
+            state.set_state(self.user_id, 'edit_module')
+
         elif current_state.split("/")[0] == "edit_theme":
             state.set_state(self.user_id, 'edit_module')
 
         elif current_state.split("/")[0] == "edit_module_child":
             state.set_state(self.user_id, f'edit_module/{current_state.split("/")[1]}')
+
+        elif current_state.split("/")[0] == "edit_theme_child":
+            state.set_state(self.user_id, f'edit_theme/{current_state.split("/")[1]}')
 
         elif current_state == "roles":
             state.set_state(self.user_id, 'settings')
@@ -180,6 +186,12 @@ class Teacher(Student):
         elif split_state[0] == "edit_module" and len(split_state) > 1:
             self.bot.send_message(self.user_id, "Закончите процесс изменения модуля")
 
+        elif split_state[0] == 'edit_module_child':
+            menu_handlers.edit_theme_handler(self.bot, self.user_id, None, call_data.get("data"))
+
+        elif split_state[0] == 'edit_theme_child':
+            menu_handlers.edit_exersise_handler(self.bot, self.user_id, None, call_data.get("data"))
+        
         elif current_state == 'edit_module':
             menu_handlers.edit_module_handler(self.bot, self.user_id, None, call_data.get("data"))
 
@@ -203,8 +215,8 @@ class Teacher(Student):
         elif state == 'create_module':
             menu_handlers.create_handler(self.bot, self.user_id, text, "module")
 
-        elif state == 'create_theme':
-            menu_handlers.create_handler(self.bot, self.user_id, text, "theme")
+        elif state.split('/')[0] == 'create_theme':
+            menu_handlers.create_handler(self.bot, self.user_id, text, "theme", int(state.split('/')[1]))
 
         elif state == 'edit_module':
             menu_handlers.edit_module_menu_handler(self.bot, self.user_id, text)
@@ -217,6 +229,15 @@ class Teacher(Student):
 
         elif state.split('/')[0] == 'edit_theme':
             menu_handlers.edit_theme_handler(self.bot, self.user_id, text, int(state.split('/')[1]))
+
+        elif state.split('/')[0] == 'edit_theme_child':
+            menu_handlers.edit_exersises_menu_handler(self.bot, self.user_id, text, int(state.split('/')[1]))
+        
+        elif state.split('/')[0] == "change_module_name":
+            menu_handlers.change_name(self.bot, self.user_id, text, "module", int(state.split('/')[1]))
+
+        elif state.split('/')[0] == "change_theme_name":
+            menu_handlers.change_name(self.bot, self.user_id, text, "theme", int(state.split('/')[1]))
 
         else:
             super().navigation_handler(state, text)

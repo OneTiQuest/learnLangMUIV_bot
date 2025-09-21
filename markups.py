@@ -1,5 +1,5 @@
 from telebot import types
-from query import get_langs, get_courses, get_roles, get_modules, get_themes_by_module_id
+from query import get_langs, get_courses, get_roles, get_modules, get_themes_by_module_id, get_exersises
 import json
 
 # Предложение выбора кнопок флагов
@@ -50,13 +50,47 @@ def get_edit_theme_markup():
 
     return markup
 
+# Предложение выбора кнопок редактирования
+def get_edit_exersises_markup():
+    # Создаем клавиатуру
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    
+    markup.add(
+        types.KeyboardButton(f"➕ Создать упражнение"),
+        types.KeyboardButton(f"✏️ Изменить упражнение"),
+        types.KeyboardButton("⬅️ Назад")
+    )
+
+    return markup
+
+def get_edit_exersise_markup():
+    # Создаем клавиатуру
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    
+    markup.add(
+        types.KeyboardButton(f"✏️ Изменить заголовок"),
+        types.KeyboardButton(f"✏️ Изменить контент"),
+        types.KeyboardButton("⬅️ Назад")
+    )
+
+    return markup
+
+# Предложение выбора кнопок редактирования
+def get_exersises_markup(theme_id: int):
+    markup = types.InlineKeyboardMarkup(row_width=2)
+
+    for exersise in get_exersises(theme_id):
+        markup.add(types.InlineKeyboardButton(exersise[1], callback_data=json.dumps({"type": "exersise", "data": exersise[0]})))
+
+    return markup
+
 # Предложение выбора кнопок редактирования модуля
 def get_edit_object_markup(add_back: bool=True):
     # Создаем клавиатуру
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
     markup.row(
-        types.KeyboardButton(f"✏️ Изменить"),
+        types.KeyboardButton(f"✏️ Изменить название"),
         types.KeyboardButton(f"❌ Удалить")
     )
 
@@ -165,5 +199,12 @@ def get_next_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
     markup.add(types.KeyboardButton("Продолжить ➡️"))
+
+    return markup
+
+def get_back_markup():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+
+    markup.add(types.KeyboardButton("⬅️ Назад"))
 
     return markup
