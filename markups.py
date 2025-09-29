@@ -3,13 +3,14 @@ from query import get_langs, get_courses, get_roles, get_modules, get_themes_by_
 import json
 
 # Предложение выбора кнопок флагов
-def get_lang_markup():
+def get_lang_markup(user_id: int = None, draw_back: bool = True):
     # Создаем клавиатуру
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    for lang in get_langs():
+    for lang in get_langs(user_id):
         markup.add(types.KeyboardButton(f"{lang[2]} {lang[1]}"))
-    
-    markup.add(types.KeyboardButton("⬅️ Назад"))
+        
+    if draw_back:
+        markup.add(types.KeyboardButton("⬅️ Назад"))
 
     return markup
 

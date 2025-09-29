@@ -133,7 +133,7 @@ class Audio(Exersise):
         if not self.data:
             return super().parse_data()
         
-        with open(f"{self.data.get('path')}/{self.id}.mp3", 'rb') as audio:
+        with open(f"{self.data.get('path')}", 'rb') as audio:
             self.bot.send_message(self.user_id, f"Прослушайте запись")
             self.bot.send_audio(self.user_id, audio, reply_markup=self.gen_markup())
 

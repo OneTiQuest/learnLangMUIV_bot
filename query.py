@@ -31,8 +31,31 @@ def save_user(user_info):
         )
         return cur.fetchone()
     
-def get_langs():
-    return run_sql(f"SELECT id, name, short_name FROM langs")
+def get_langs(user_id: int = None):
+    by_user = ''
+    if user_id:
+        by_user = (
+            f"""
+                JOIN 
+                    users_langs ul 
+                ON
+                    ul.lang_id = l.id 
+                WHERE
+                    ul.user_id = {user_id}
+            """
+        )
+        
+    return run_sql(
+        f"""
+            SELECT 
+                id, 
+                name, 
+                short_name 
+            FROM 
+                langs l
+           	{by_user}
+        """
+    )
 
 def get_courses():
     return run_sql(f"SELECT id, name, code FROM courses")
@@ -396,20 +419,39 @@ def delete_theme(theme_id: int):
             """
         )
 
-def create_module(name: str, lang_id: int):
+def create_module(name: str, lang_id: int, user_id: int):
     with conn.cursor() as cur:
         cur.execute(
             f"""
+                WITH s_m as (
+                    INSERT INTO 
+                        modules
+                    (
+                        name,
+                        lang_id
+                    )
+                    VALUES (
+                        %s,
+                        %s
+                    )
+                    RETURNING id
+                ), course_module as (
+                    SELECT
+                        (s.settings::json->>'course_id')::int,
+                        (SELECT * FROM s_m)
+                    FROM
+                        settings s 
+                    WHERE
+                        s.user_id = {user_id}
+                    LIMIT 1
+                )
                 INSERT INTO 
-                    modules
+                    courses_modules 
                 (
-                    name,
-                    lang_id
-                )
-                VALUES (
-                    %s,
-                    %s
-                )
+                    course_id, 
+                    module_id
+                ) 
+                ( SELECT * FROM course_module );
             """
         , (name, lang_id))
 

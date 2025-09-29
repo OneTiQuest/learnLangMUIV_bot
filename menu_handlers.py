@@ -389,8 +389,20 @@ def edit_theme_handler(bot, user_id: int, text, theme_id: int):
 def create_handler(bot, user_id: int, text: str, create_type: str, parent_id: int = None):
     if create_type == "module":
         state.set_state(user_id, 'edit_module')
-        create_module(text, 2) # TODO: Получить lang_id
-        bot.send_message(user_id, f"Модуль \"{text}\" создан ✅", reply_markup=markups.get_next_markup())
+
+        langs = markups.get_lang_markup(user_id, False)
+        if len(langs.keyboard) > 1:
+            def save_m(module_name: str, lang_name: str):
+                lang_id = lang_answer(lang_name)
+                create_module(module_name, lang_id[0], user_id)
+
+            msg = bot.send_message(user_id, f"Выберите язык нового модуля", reply_markup=langs)
+            bot.register_next_step_handler(msg, lambda msg: save_m(text, msg.text))
+
+        else:
+            lang_id = lang_answer(langs.keyboard[0][0].get("text"))
+            create_module(text, lang_id[0], user_id)
+            bot.send_message(user_id, f"Модуль \"{text}\" создан ✅", reply_markup=markups.get_next_markup())
 
     elif create_type == "theme":
         state.set_state(user_id, f'edit_module/{parent_id}')
