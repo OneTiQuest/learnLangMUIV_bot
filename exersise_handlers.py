@@ -1,6 +1,7 @@
 import json
 from telebot import TeleBot, types
 import markups
+from query import update_theory_exersise
 
 
 class Exersise():
@@ -37,6 +38,9 @@ class Exersise():
             return 'Данных упражнения нет.'
         
         return self.data
+    
+    def change(self):
+        raise NotImplementedError("Нет дочерней реализации")
 
 """
 Недостающее слово
@@ -111,6 +115,20 @@ class Theory(Exersise):
                 text += data_content
 
         return text
+    
+    def change(self):
+        def save_data(message):
+            data = {
+                "content": {
+                    "type": "text",
+                    "data": message.text
+                }
+            }
+            update_theory_exersise(self.id, json.loads(data))
+            self.bot.send_message(f"Контент успешно изменен", reply_markup=markups.get_next_markup())
+
+        msg = self.bot.send_message(f"Введите текст теоритического упражнения:")
+        self.bot.register_next_step_handler(msg, save_data)
 
 
 # Фабрика с параметром

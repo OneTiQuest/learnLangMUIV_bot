@@ -334,6 +334,16 @@ def get_exersises(theme_id: int):
         """
     )
 
+def get_exersises_types():
+    return run_sql(
+        f"""
+            SELECT 
+                *
+            FROM
+                exercise_type et
+        """
+    )
+
 def update_module(module_id: int, name: str):
     with conn.cursor() as cur:
         cur.execute(
@@ -341,10 +351,10 @@ def update_module(module_id: int, name: str):
                 UPDATE 
                     modules 
                 SET 
-                    name='{name}' 
-                WHERE id = {module_id}
+                    name = %s
+                WHERE id = %s
             """
-        )
+        , (name, module_id))
 
 def update_theme(theme_id: int, name: str):
     with conn.cursor() as cur:
@@ -353,10 +363,22 @@ def update_theme(theme_id: int, name: str):
                 UPDATE 
                     themes
                 SET 
-                    name='{name}' 
-                WHERE id = {theme_id}
+                    name = %s
+                WHERE id = %s
             """
-        )
+        , (name, theme_id))
+
+def update_exersise(exersise_id: int, name: str):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+                UPDATE 
+                    exercise
+                SET 
+                    title = %s
+                WHERE id = %s
+            """
+        , (name, exersise_id))
 
 def delete_module(module_id: int):
     with conn.cursor() as cur:
@@ -374,18 +396,62 @@ def delete_theme(theme_id: int):
             """
         )
 
-def create_module(name: str):
+def create_module(name: str, lang_id: int):
     with conn.cursor() as cur:
         cur.execute(
             f"""
-                
+                INSERT INTO 
+                    modules
+                (
+                    name,
+                    lang_id
+                )
+                VALUES (
+                    %s,
+                    %s
+                )
             """
-        )
+        , (name, lang_id))
 
-def create_theme(name: str):
+def create_theme(name: str, module_id: int):
     with conn.cursor() as cur:
         cur.execute(
             f"""
-                
+                INSERT INTO 
+                    themes
+                (
+                    name,
+                    module_id
+                )
+                VALUES (
+                    %s,
+                    %s
+                )
             """
+        , (name, module_id))
+
+def create_exersise(theme_id: int, type_id: int, title: str):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"INSERT INTO exercise (theme_id, type_id, title) VALUES ({theme_id}, {type_id}, '{title}') RETURNING *"
         )
+        return cur.fetchone()
+    
+def get_exersise_by_id(id: int):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"SELECT * FROM exercise WHERE id = %s"
+        , (id))
+        return cur.fetchone()
+    
+def update_theory_exersise(id: int, data: str):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+                UPDATE 
+                    exercise
+                SET 
+                    another_data = %s
+                WHERE id = %s
+            """
+        , (data, id))

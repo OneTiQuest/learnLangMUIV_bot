@@ -1,4 +1,4 @@
-from query import get_langs, get_courses, get_roles, get_modules
+from query import get_langs, get_courses, get_roles, get_modules, get_exersises_types
 
 
 def lang_answer(text):
@@ -22,3 +22,8 @@ def module_answer(text, user_id):
     for role in get_modules(user_id):
         if text == role[1]:
             return role
+        
+def exersise_types_answer(text):
+    for type in get_exersises_types():
+        if text == type[1]:
+            return type

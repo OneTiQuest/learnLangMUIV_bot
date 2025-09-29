@@ -1,5 +1,5 @@
 from telebot import types
-from query import get_langs, get_courses, get_roles, get_modules, get_themes_by_module_id, get_exersises
+from query import get_langs, get_courses, get_roles, get_modules, get_themes_by_module_id, get_exersises, get_exersises_types
 import json
 
 # Предложение выбора кнопок флагов
@@ -81,6 +81,15 @@ def get_exersises_markup(theme_id: int):
 
     for exersise in get_exersises(theme_id):
         markup.add(types.InlineKeyboardButton(exersise[1], callback_data=json.dumps({"type": "exersise", "data": exersise[0]})))
+
+    return markup
+
+# Предложение выбора типа упражнения
+def get_exersises_types_markup():
+    markup = types.ReplyKeyboardMarkup(row_width=2)
+
+    for exersise in get_exersises_types():
+        markup.add(types.KeyboardButton(exersise[1]))
 
     return markup
 

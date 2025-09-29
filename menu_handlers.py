@@ -1,7 +1,9 @@
-from check_answers import lang_answer, course_answer, role_answer, module_answer
+from check_answers import lang_answer, course_answer, role_answer, module_answer, exersise_types_answer
 import markups
 from query import set_user_lang, upsert_settings, get_exercise, save_answer, update_role, set_user_grade, get_teacer_stat, get_users
-from query import create_module, create_theme, update_module, update_theme, delete_module, delete_theme
+from query import create_module, create_theme, update_module, update_theme, \
+    update_exersise, delete_module, delete_theme, create_exersise, \
+    get_exersise_by_id
 from exersise_handlers import ExersiseFactory
 from scripts import calc_result
 import state
@@ -269,6 +271,9 @@ def teacher_settings_menu_handler(bot, user_id: int, text: str):
         bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_teacher_settings_markup())
 
 
+
+
+
 def edit_module_menu_handler(bot, user_id: int, text: str):
     if text == "➕ Создать модуль":
         state.set_state(user_id, 'create_module')
@@ -288,31 +293,36 @@ def edit_theme_menu_handler(bot, user_id: int, text: str, module_id: int = None)
         bot.send_message(user_id, "Введите название новой темы:", reply_markup=markups.remove_markup())
 
     elif text == "✏️ Изменить тему":
+        module_id = str(state.get_state(user_id)).split("/")[1]
         bot.send_message(user_id, "Выберите тему для изменения:", reply_markup=markups.get_themes_markup(module_id))
 
     else:
-        bot.send_message(user_id, f"Выберите действие с темой:", reply_markup=markups.get_edit_theme_markup())
+        bot.send_message(user_id, f"Выберите действие внутри модуля:", reply_markup=markups.get_edit_theme_markup())
+
+def edit_exersises_menu_handler(bot, user_id: int, text: str, theme_id: int = None):
+    if text == "➕ Создать упражнение":
+        theme_id = str(state.get_state(user_id)).split("/")[1]
+        state.set_state(user_id, f'create_exersise/{theme_id}')
+        create_exersise_handler(bot, user_id, text)
+
+    elif text == "✏️ Изменить упражнение":
+        theme_id = str(state.get_state(user_id)).split("/")[1]
+        bot.send_message(user_id, "Выберите упражнение для изменения:", reply_markup=markups.get_exersises_markup(theme_id))
+
+    else:
+        bot.send_message(user_id, f"Выберите действие внутри темы:", reply_markup=markups.get_edit_exersises_markup())
 
 
-def create_handler(bot, user_id: int, text: str, create_type: str, parent_id: int = None):
-    if create_type == "module":
-        state.set_state(user_id, 'edit_module')
-        bot.send_message(user_id, f"Создан модуль: {text}", reply_markup=markups.get_next_markup())
 
-    elif create_type == "theme":
-        state.set_state(user_id, f'edit_module/{parent_id}')
-        bot.send_message(user_id, f"Создана тема: {text} у модуля с id = {parent_id}", reply_markup=markups.get_next_markup())
 
-    elif create_type == "exersise":
-        state.set_state(user_id, f'edit_theme/{parent_id}')
-        bot.send_message(user_id, f"Создано упражнение: {text} у темы с id = {parent_id}", reply_markup=markups.get_next_markup())
+
 
 
 def edit_module_handler(bot, user_id: int, text, module_id: int = None):
     if text == "✏️ Изменить название":
         module_id = str(state.get_state(user_id)).split("/")[1]
-        state.set_state(user_id, f'change_module_name/{module_id}')
-        bot.send_message(user_id, f"Введите новое название модуля:", reply_markup=markups.remove_markup())
+        mess = bot.send_message(user_id, "Введите новое название модуля:", reply_markup=markups.remove_markup())
+        bot.register_next_step_handler(mess, lambda message: change_name(bot, user_id, message.text, 'module', module_id))
     
     elif text == "❌ Удалить":
         module_id = str(state.get_state(user_id)).split("/")[1]
@@ -333,8 +343,8 @@ def edit_module_handler(bot, user_id: int, text, module_id: int = None):
 def edit_theme_handler(bot, user_id: int, text, theme_id: int):
     if text == "✏️ Изменить название":
         theme_id = str(state.get_state(user_id)).split("/")[1]
-        state.set_state(user_id, f'change_theme_name/{theme_id}')
-        bot.send_message(user_id, f"Введите новое название темы:", reply_markup=markups.remove_markup())
+        mess = bot.send_message(user_id, "Введите новое название темы:", reply_markup=markups.remove_markup())
+        bot.register_next_step_handler(mess, lambda message: change_name(bot, user_id, message.text, 'theme', theme_id))
     
     elif text == "❌ Удалить":
         theme_id = str(state.get_state(user_id)).split("/")[1]
@@ -351,6 +361,22 @@ def edit_theme_handler(bot, user_id: int, text, theme_id: int):
 
         bot.send_message(user_id, f"Выберите действие с темой:", reply_markup=markups.get_edit_object_markup())
 
+
+
+
+
+
+def create_handler(bot, user_id: int, text: str, create_type: str, parent_id: int = None):
+    if create_type == "module":
+        state.set_state(user_id, 'edit_module')
+        create_module(text, 2) # TODO: Получить lang_id
+        bot.send_message(user_id, f"Создан модуль: {text}", reply_markup=markups.get_next_markup())
+
+    elif create_type == "theme":
+        state.set_state(user_id, f'edit_module/{parent_id}')
+        create_theme(text, parent_id)
+        bot.send_message(user_id, f"Создана тема: {text} у модуля с id = {parent_id}", reply_markup=markups.get_next_markup())
+
 def change_name(bot, user_id: int, text: str, type: str, id: int):
     if type == "module":
         update_module(id, text)
@@ -362,21 +388,41 @@ def change_name(bot, user_id: int, text: str, type: str, id: int):
         state.set_state(user_id, f'edit_theme/{id}')
         bot.send_message(user_id, f"Название темы изменено", reply_markup=markups.get_next_markup())
 
-def edit_exersises_menu_handler(bot, user_id: int, text: str, theme_id: int = None):
-    if text == "➕ Создать упражнение":
-        # theme_id = str(state.get_state(user_id)).split("/")[1]
-        state.set_state(user_id, f'create_exersise/{theme_id}')
-        bot.send_message(user_id, "Введите название нового упражнения:", reply_markup=markups.remove_markup())
+    elif type == "exersise":
+        update_exersise(id, text)
+        bot.send_message(user_id, f"Название упражнения изменено", reply_markup=markups.get_next_markup())
+        
+def create_exersise_handler(bot, user_id, text):
+    answer = exersise_types_answer(text)
+    if answer:
+        def save_exersise(theme_id: int, title: str):
+            exersise = create_exersise(theme_id, answer[0], title)
+            state.set_state(user_id, f'edit_theme_child/{theme_id}')
+            edit_exersise_handler(bot, user_id, None, exersise[0])
 
-    elif text == "✏️ Изменить упражнение":
-        bot.send_message(user_id, "Выберите упражнение для изменения:", reply_markup=markups.get_exersises_markup(theme_id))
+        theme_id = str(state.get_state(user_id)).split("/")[1]
+        mess = bot.send_message(user_id, "Введите название упражнения:", reply_markup=markups.remove_markup())
+        bot.register_next_step_handler(mess, lambda message: save_exersise(theme_id, message.text))
+
 
     else:
-        bot.send_message(user_id, f"Выберите действие", reply_markup=markups.get_edit_exersises_markup())
-        
+        bot.send_message(user_id, f"Выберите тип упражнения", reply_markup=markups.get_exersises_types_markup())
+
 def edit_exersise_handler(bot, user_id: int, text, exersise_id: int):
     if text == "✏️ Изменить заголовок":
-        bot.send_message(user_id, "Изменение заголовка")
+        mess = bot.send_message(user_id, "Введите новое название упражнения:", reply_markup=markups.remove_markup())
+        bot.register_next_step_handler(mess, lambda message: change_name(bot, user_id, message.text, 'exersise', exersise_id))
     
     elif text == "✏️ Изменить контент":
-        bot.send_message(user_id, "Изменение контента")
+        change_exersise_content(bot, user_id, exersise_id)
+
+    else:
+        if exersise_id:
+            state.set_state(user_id, f'{state.get_state(user_id)}/{exersise_id}')
+
+        bot.send_message(user_id, f"Выберите действие", reply_markup=markups.get_edit_exersise_markup())
+
+
+def change_exersise_content(bot, user_id: int, exersise_id: int):
+    exersise = get_exersise_by_id(exersise_id)
+    ExersiseFactory.create_exersise(exersise, bot, user_id).change()
