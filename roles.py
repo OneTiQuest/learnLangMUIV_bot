@@ -87,14 +87,14 @@ class Base():
         elif current_state == "edit_theme":
             state.set_state(self.user_id, 'edit_module')
 
-        elif split_state[0] == "edit_theme":
-            state.set_state(self.user_id, 'edit_module')
-
         elif split_state[0] == "edit_module_child":
             state.set_state(self.user_id, f'edit_module/{split_state[1]}')
 
         elif split_state[0] == "edit_theme_child":
             state.set_state(self.user_id, f'edit_theme/{split_state[1]}')
+
+        elif split_state[0] == "edit_theme" and len(split_state) == 3:
+            state.set_state(self.user_id, f'edit_module_child/{split_state[2]}')
 
         elif split_state[0] == "edit_theme_child" and len(split_state) == 3:
             state.set_state(self.user_id, f'edit_theme_child/{split_state[1]}')
@@ -187,12 +187,15 @@ class Teacher(Student):
 
         if split_state[0] == "edit_theme" and len(split_state) > 1:
             self.bot.send_message(self.user_id, "Закончите процесс изменения темы")
+            return
 
         if split_state[0] == "edit_theme_child" and len(split_state) > 2:
             self.bot.send_message(self.user_id, "Закончите процесс изменения упражнения")
+            return
 
         elif split_state[0] == "edit_module" and len(split_state) > 1:
             self.bot.send_message(self.user_id, "Закончите процесс изменения модуля")
+            return
 
         elif split_state[0] == 'edit_module_child':
             menu_handlers.edit_theme_handler(self.bot, self.user_id, None, call_data.get("data"))
@@ -205,9 +208,6 @@ class Teacher(Student):
 
         elif current_state == 'edit_theme':
             menu_handlers.edit_theme_handler(self.bot, self.user_id, None, call_data.get("data"))
-
-        elif call_data.get("type") == "theme":
-            self.bot.send_message(self.user_id, "Выбрана тема")
 
         else:
             super().call_handler(call_data)

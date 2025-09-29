@@ -3,7 +3,7 @@ import markups
 from query import set_user_lang, upsert_settings, get_exercise, save_answer, update_role, set_user_grade, get_teacer_stat, get_users
 from query import create_module, create_theme, update_module, update_theme, \
     update_exersise, delete_module, delete_theme, create_exersise, \
-    get_exersise_by_id
+    get_exersise_by_id, get_grades_by_user_id
 from exersise_handlers import ExersiseFactory
 from scripts import calc_result
 import state
@@ -84,6 +84,9 @@ def main_menu_handler(bot, user_id: int, text: str):
     elif text == '⚙️ Настройки':
         state.set_state(user_id, 'settings')
         bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_settings_markup())
+
+    elif text == '⭐️ Мои оценки':
+        my_grades(bot, user_id)
 
     else:
         bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_main_markup())
@@ -233,6 +236,22 @@ def teach_main_menu_handler(bot, user_id: int, text: str):
     else:
         bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_teacher_main_markup())
 
+def my_grades(bot, user_id: int):
+    grades = get_grades_by_user_id(user_id)
+    if not grades:
+        bot.send_message(user_id, f"Оценок нет")
+
+    grades_text = ''
+
+    for module_name, module_data in grades:
+        grades_text += f"<b>{module_name}</b>\n"
+
+        for data in module_data:
+            theme_name = data.get("name")
+            theme_grade = data.get("grade")
+            grades_text += f"ㅤ{theme_name} - {theme_grade}"
+
+    bot.send_message(user_id, grades_text, parse_mode="HTML")
 
 def admin_main_menu_handler(bot, user_id: int, text: str):
     if text == '⚙️ Настройки':
@@ -279,7 +298,7 @@ def edit_module_menu_handler(bot, user_id: int, text: str):
         state.set_state(user_id, 'create_module')
         bot.send_message(user_id, "Введите название нового модуля:", reply_markup=markups.remove_markup())
 
-    elif text == "✏️ Изменить модуль":
+    elif text == "✏️ Выбрать модуль":
         bot.send_message(user_id, "Выберите модуль для изменения:", reply_markup=markups.get_modules_markup(user_id))
 
     else:
@@ -292,7 +311,7 @@ def edit_theme_menu_handler(bot, user_id: int, text: str, module_id: int = None)
         state.set_state(user_id, f'create_theme/{module_id}')
         bot.send_message(user_id, "Введите название новой темы:", reply_markup=markups.remove_markup())
 
-    elif text == "✏️ Изменить тему":
+    elif text == "✏️ Выбрать тему":
         module_id = str(state.get_state(user_id)).split("/")[1]
         bot.send_message(user_id, "Выберите тему для изменения:", reply_markup=markups.get_themes_markup(module_id))
 
@@ -305,7 +324,7 @@ def edit_exersises_menu_handler(bot, user_id: int, text: str, theme_id: int = No
         state.set_state(user_id, f'create_exersise/{theme_id}')
         create_exersise_handler(bot, user_id, text)
 
-    elif text == "✏️ Изменить упражнение":
+    elif text == "✏️ Выбрать упражнение":
         theme_id = str(state.get_state(user_id)).split("/")[1]
         bot.send_message(user_id, "Выберите упражнение для изменения:", reply_markup=markups.get_exersises_markup(theme_id))
 
@@ -357,7 +376,8 @@ def edit_theme_handler(bot, user_id: int, text, theme_id: int):
         
     else:
         if theme_id:
-            state.set_state(user_id, f'edit_theme/{theme_id}')
+            module_id = str(state.get_state(user_id)).split("/")[1]
+            state.set_state(user_id, f'edit_theme/{theme_id}/{module_id}')
 
         bot.send_message(user_id, f"Выберите действие с темой:", reply_markup=markups.get_edit_object_markup())
 
@@ -389,7 +409,7 @@ def change_name(bot, user_id: int, text: str, type: str, id: int):
         bot.send_message(user_id, f"Название темы изменено ✅", reply_markup=markups.get_next_markup())
 
     elif type == "exersise":
-        update_exersise(id, text)
+        update_exersise(id, title=text)
         bot.send_message(user_id, f"Название упражнения изменено ✅", reply_markup=markups.get_next_markup())
         
 def create_exersise_handler(bot, user_id, text):

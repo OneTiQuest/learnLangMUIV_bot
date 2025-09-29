@@ -442,16 +442,58 @@ def get_exersise_by_id(id: int):
         cur.execute(f"SELECT * FROM exercise WHERE id = {id}")
         return cur.fetchone()
     
-def update_exersise(id: int, data: dict):
-    local_data = data.copy()
-    key, value = local_data.popitem()
+def update_exersise(id: int, data: dict = None, title: str = None):
+    change_data_query = ''
+    change_title_query = ''
+
+    if data:
+        local_data = data.copy()
+        key, value = local_data.popitem()
+        change_data_query = f"another_data = jsonb_set(COALESCE(another_data, '{{}}')::jsonb, '{{{key}}}', '{json.dumps(value)}'::jsonb),"
+    
+    if title:
+        change_title_query = f"title = '{title}'"
+
     with conn.cursor() as cur:
         cur.execute(
             f"""
                 UPDATE 
                     exercise
                 SET 
-                    another_data = jsonb_set(COALESCE(another_data, '{{}}')::jsonb, '{{{key}}}', %s::jsonb)
-                WHERE id = %s
+                    {change_data_query}
+                    {change_title_query}
+                WHERE id = {id}
             """
-        , (json.dumps(value), id))
+        )
+
+def get_grades_by_user_id(user_id: int):
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""
+                WITH gr AS (
+                    SELECT 
+                        t.name, 
+                        g.grade,
+                        t.module_id 
+                    FROM 
+                        grades  g
+                    JOIN
+                        themes t
+                    ON
+                        t.id = g.theme_id 
+                    
+                    WHERE 
+                        g.user_id = {user_id}
+                )
+                SELECT
+                    m."name",
+                    json_agg(gr)
+                FROM
+                    modules m
+                JOIN
+                    gr
+                ON gr.module_id = m.id
+                GROUP BY m.id 
+            """
+        )
+        return cur.fetchall()

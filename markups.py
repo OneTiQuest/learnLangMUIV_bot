@@ -31,7 +31,7 @@ def get_edit_module_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
         types.KeyboardButton(f"➕ Создать модуль"),
-        types.KeyboardButton(f"✏️ Изменить модуль")
+        types.KeyboardButton(f"✏️ Выбрать модуль")
     )
     
     markup.add(types.KeyboardButton("⬅️ Назад"))
@@ -44,7 +44,7 @@ def get_edit_theme_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
         types.KeyboardButton(f"➕ Создать тему"),
-        types.KeyboardButton(f"✏️ Изменить тему"),
+        types.KeyboardButton(f"✏️ Выбрать тему"),
         types.KeyboardButton("⬅️ Назад")
     )
 
@@ -57,7 +57,7 @@ def get_edit_exersises_markup():
     
     markup.add(
         types.KeyboardButton(f"➕ Создать упражнение"),
-        types.KeyboardButton(f"✏️ Изменить упражнение"),
+        types.KeyboardButton(f"✏️ Выбрать упражнение"),
         types.KeyboardButton("⬅️ Назад")
     )
 
@@ -122,6 +122,7 @@ def get_main_markup():
     markup.add(
         types.KeyboardButton("ℹ️ Модули"),
         types.KeyboardButton("⚙️ Настройки"),
+        types.KeyboardButton("⭐️ Мои оценки"),
     )
         
     return markup
