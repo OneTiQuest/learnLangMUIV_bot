@@ -439,19 +439,19 @@ def create_exersise(theme_id: int, type_id: int, title: str):
     
 def get_exersise_by_id(id: int):
     with conn.cursor() as cur:
-        cur.execute(
-            f"SELECT * FROM exercise WHERE id = %s"
-        , (id))
+        cur.execute(f"SELECT * FROM exercise WHERE id = {id}")
         return cur.fetchone()
     
-def update_theory_exersise(id: int, data: str):
+def update_exersise(id: int, data: dict):
+    local_data = data.copy()
+    key, value = local_data.popitem()
     with conn.cursor() as cur:
         cur.execute(
             f"""
                 UPDATE 
                     exercise
                 SET 
-                    another_data = %s
+                    another_data = jsonb_set(COALESCE(another_data, '{{}}')::jsonb, '{{{key}}}', %s::jsonb)
                 WHERE id = %s
             """
-        , (data, id))
+        , (json.dumps(value), id))
