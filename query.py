@@ -407,7 +407,8 @@ def delete_module(module_id: int):
     with conn.cursor() as cur:
         cur.execute(
             f"""
-                DELETE FROM modules WHERE id = {module_id}
+                DELETE FROM courses_modules WHERE module_id = {module_id};
+                DELETE FROM modules WHERE id = {module_id};
             """
         )
 
@@ -415,7 +416,8 @@ def delete_theme(theme_id: int):
     with conn.cursor() as cur:
         cur.execute(
             f"""
-                DELETE FROM themes WHERE id = {theme_id}
+                DELETE FROM exercise WHERE theme_id = {theme_id};
+                DELETE FROM themes WHERE id = {theme_id};
             """
         )
 
