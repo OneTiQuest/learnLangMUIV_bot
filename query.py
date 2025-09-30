@@ -236,7 +236,7 @@ def set_user_grade(user_id: int, theme_id: int, grade: int):
 def get_user_langs(user_id: int):
     return run_sql(f"SELECT * FROM users_langs LEFT JOIN langs ON langs.id = users_langs.lang_id WHERE user_id={user_id}")
 
-def get_user_answers(user_id: int):
+def get_user_answers(user_id: int, theme_id: int):
     return run_sql(
         f"""
             SELECT
@@ -248,8 +248,13 @@ def get_user_answers(user_id: int):
             	exercise e 
             ON 
             	a.exercise_id = e.id
-            WHERE 
+            JOIN
+            	themes t 
+            ON
+            	t.id = e.theme_id 
+            WHERE
             	e.type_id IN (1, 2, 4)
+            	AND t.id = {theme_id}
             	AND a.user_id = {user_id}
         """
     )
@@ -407,7 +412,6 @@ def delete_module(module_id: int):
     with conn.cursor() as cur:
         cur.execute(
             f"""
-                DELETE FROM courses_modules WHERE module_id = {module_id};
                 DELETE FROM modules WHERE id = {module_id};
             """
         )
@@ -416,8 +420,7 @@ def delete_theme(theme_id: int):
     with conn.cursor() as cur:
         cur.execute(
             f"""
-                DELETE FROM exercise WHERE theme_id = {theme_id};
-                DELETE FROM themes WHERE id = {theme_id};
+                DELETE FROM themes WHERE id = {theme_id}
             """
         )
 
@@ -489,14 +492,18 @@ def get_exersise_by_id(id: int):
 def update_exersise(id: int, data: dict = None, title: str = None):
     change_data_query = ''
     change_title_query = ''
+    isAnd = ''
 
     if data:
         local_data = data.copy()
         key, value = local_data.popitem()
-        change_data_query = f"another_data = jsonb_set(COALESCE(another_data, '{{}}')::jsonb, '{{{key}}}', '{json.dumps(value)}'::jsonb),"
+        change_data_query = f"another_data = jsonb_set(COALESCE(another_data, '{{}}')::jsonb, '{{{key}}}', '{json.dumps(value)}'::jsonb)"
     
     if title:
         change_title_query = f"title = '{title}'"
+
+    if data and title:
+        isAnd = "AND"
 
     with conn.cursor() as cur:
         cur.execute(
@@ -505,6 +512,7 @@ def update_exersise(id: int, data: dict = None, title: str = None):
                     exercise
                 SET 
                     {change_data_query}
+                    {isAnd}
                     {change_title_query}
                 WHERE id = {id}
             """

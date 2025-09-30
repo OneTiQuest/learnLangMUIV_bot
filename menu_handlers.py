@@ -164,7 +164,7 @@ def theme_menu_handler(bot, user_id: int, text: str, theme_id: int):
 
     ex = get_exercise(current_theme_id, current_exersise_id)
     if not ex:
-        grade = calc_result(bot, user_id)
+        grade = calc_result(bot, user_id, theme_id)
         set_user_grade(user_id, theme_id, grade)
         state.set_state(user_id, 'main')
         return
@@ -249,7 +249,9 @@ def my_grades(bot, user_id: int):
         for data in module_data:
             theme_name = data.get("name")
             theme_grade = data.get("grade")
-            grades_text += f"ㅤ{theme_name} - {theme_grade}"
+            grades_text += f"ㅤ{theme_name} - {theme_grade}\n"
+
+        grades_text += "\n"
 
     bot.send_message(user_id, grades_text, parse_mode="HTML")
 
@@ -313,9 +315,17 @@ def edit_theme_menu_handler(bot, user_id: int, text: str, module_id: int = None)
 
     elif text == "✏️ Выбрать тему":
         module_id = str(state.get_state(user_id)).split("/")[1]
-        bot.send_message(user_id, "Выберите тему для изменения:", reply_markup=markups.get_themes_markup(module_id))
+        mrkp = markups.get_themes_markup(module_id)
+
+        isEmpty = not mrkp.to_dict().get('inline_keyboard')
+        if not isEmpty:
+            bot.send_message(user_id, "Выберите тему для изменения:", reply_markup=mrkp)
+        else:
+            bot.send_message(user_id, "К сожалению, тем у данного модуля нет.")
 
     else:
+        if module_id:
+            state.set_state(user_id, f'edit_module_child/{module_id}')
         bot.send_message(user_id, f"Выберите действие внутри модуля:", reply_markup=markups.get_edit_theme_markup())
 
 def edit_exersises_menu_handler(bot, user_id: int, text: str, theme_id: int = None):
@@ -326,9 +336,17 @@ def edit_exersises_menu_handler(bot, user_id: int, text: str, theme_id: int = No
 
     elif text == "✏️ Выбрать упражнение":
         theme_id = str(state.get_state(user_id)).split("/")[1]
-        bot.send_message(user_id, "Выберите упражнение для изменения:", reply_markup=markups.get_exersises_markup(theme_id))
+        mrkp = markups.get_exersises_markup(theme_id)
+
+        isEmpty = not mrkp.to_dict().get('inline_keyboard')
+        if not isEmpty:
+            bot.send_message(user_id, "Выберите упражнение для изменения:", reply_markup=mrkp)
+        else:
+            bot.send_message(user_id, "К сожалению, упражнений по данной теме нет.")
 
     else:
+        if theme_id:
+            state.set_state(user_id, f'edit_theme_child/{theme_id}')
         bot.send_message(user_id, f"Выберите действие внутри темы:", reply_markup=markups.get_edit_exersises_markup())
 
 

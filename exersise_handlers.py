@@ -60,8 +60,8 @@ class MissingWord(Exersise):
                 return
             
             data = {"success_answer": message.text.lower().strip()}
-            update_exersise(self.id, json.dumps(data))
-            self.bot.send_message(message, f"Правильный ответ успешно изменен ✅", reply_markup=markups.get_next_markup())
+            update_exersise(self.id, data)
+            self.bot.reply_to(message, f"Правильный ответ успешно изменен ✅", reply_markup=markups.get_next_markup())
 
         msg = self.bot.send_message(self.user_id, f"Введите недостающее слово для правильного ответа:", reply_markup=markups.remove_markup())
         self.bot.register_next_step_handler(msg, save_data)
@@ -204,15 +204,15 @@ class Theory(Exersise):
                 return
             
             data = {
-                "content": {
+                "content": [{
                     "type": "text",
                     "data": message.text
-                }
+                }]
             }
             update_exersise(self.id, data)
-            self.bot.reply_to(self.user_id, "Контент успешно изменен ✅", reply_markup=markups.get_next_markup())
+            self.bot.reply_to(message, "Контент успешно изменен ✅", reply_markup=markups.get_next_markup())
 
-        msg = self.bot.send_message(f"Введите текст теоритического упражнения:", reply_markup=markups.remove_markup())
+        msg = self.bot.send_message(self.user_id, f"Введите текст теоритического упражнения:", reply_markup=markups.remove_markup())
         self.bot.register_next_step_handler(msg, save_data)
 
 

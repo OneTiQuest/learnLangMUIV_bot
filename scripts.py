@@ -30,8 +30,8 @@ def select_theme_script(bot, theme_id, user_id):
     ExersiseFactory.create_exersise(first_exersise, bot, user_id).send()
 
 
-def calc_result(bot, user_id: int):
-    answers = get_user_answers(user_id)
+def calc_result(bot, user_id: int, theme_id: int):
+    answers = get_user_answers(user_id, theme_id)
     max_a = len(answers)
     s_a_counter = 0
 
