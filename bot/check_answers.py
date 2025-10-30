@@ -1,4 +1,3 @@
-from query import get_langs, get_courses, get_roles, get_modules, get_exersises_types
 
 
 def lang_answer(text):

@@ -1,12 +1,8 @@
-from check_answers import lang_answer, course_answer, role_answer, module_answer, exersise_types_answer
-import markups
-from query import set_user_lang, upsert_settings, get_exercise, save_answer, update_role, set_user_grade, get_teacer_stat, get_users
-from query import create_module, create_theme, update_module, update_theme, \
-    update_exersise, delete_module, delete_theme, create_exersise, \
-    get_exersise_by_id, get_grades_by_user_id
-from exersise_handlers import ExersiseFactory
-from scripts import calc_result
-import state
+from bot.check_answers import lang_answer, course_answer, role_answer, module_answer, exersise_types_answer
+import bot.markups as markups
+from bot.exersise_handlers import ExersiseFactory
+from bot.scripts import calc_result
+import bot.state as state
 
 def _1_step_handler(bot, user_id: int, text: str):
     answer = lang_answer(text)
@@ -292,9 +288,6 @@ def teacher_settings_menu_handler(bot, user_id: int, text: str):
         bot.send_message(user_id, "Выберите вариант из меню:", reply_markup=markups.get_teacher_settings_markup())
 
 
-
-
-
 def edit_module_menu_handler(bot, user_id: int, text: str):
     if text == "➕ Создать модуль":
         state.set_state(user_id, 'create_module')
@@ -350,11 +343,6 @@ def edit_exersises_menu_handler(bot, user_id: int, text: str, theme_id: int = No
         bot.send_message(user_id, f"Выберите действие внутри темы:", reply_markup=markups.get_edit_exersises_markup())
 
 
-
-
-
-
-
 def edit_module_handler(bot, user_id: int, text, module_id: int = None):
     if text == "✏️ Изменить название":
         module_id = str(state.get_state(user_id)).split("/")[1]
@@ -400,10 +388,6 @@ def edit_theme_handler(bot, user_id: int, text, theme_id: int):
         bot.send_message(user_id, f"Выберите действие с темой:", reply_markup=markups.get_edit_object_markup())
 
 
-
-
-
-
 def create_handler(bot, user_id: int, text: str, create_type: str, parent_id: int = None):
     if create_type == "module":
         state.set_state(user_id, 'edit_module')
@@ -441,7 +425,7 @@ def change_name(bot, user_id: int, text: str, type: str, id: int):
     elif type == "exersise":
         update_exersise(id, title=text)
         bot.send_message(user_id, f"Название упражнения изменено ✅", reply_markup=markups.get_next_markup())
-        
+
 def create_exersise_handler(bot, user_id, text):
     answer = exersise_types_answer(text)
     if answer:

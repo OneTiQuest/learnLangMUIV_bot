@@ -1,5 +1,4 @@
 from telebot import types
-from query import get_langs, get_courses, get_roles, get_modules, get_themes_by_module_id, get_exersises, get_exersises_types
 import json
 
 # Предложение выбора кнопок флагов
@@ -217,5 +216,13 @@ def get_back_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
     markup.add(types.KeyboardButton("⬅️ Назад"))
+
+    return markup
+
+def auth_markup():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+
+    markup.add(types.KeyboardButton("Вход"))
+    markup.add(types.KeyboardButton("Регистрация"))
 
     return markup

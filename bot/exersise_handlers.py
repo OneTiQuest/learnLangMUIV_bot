@@ -1,7 +1,6 @@
 import json
 from telebot import TeleBot, types
-import markups
-from query import update_exersise
+import bot.markups as markups
 
 
 class Exersise():
