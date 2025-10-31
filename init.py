@@ -1,5 +1,5 @@
-from telebot import TeleBot, types
 import json
+from telebot import TeleBot, types
 import os
 from bot.markups import auth_markup
 from bot.roles import Base as BaseRole, get_user
@@ -11,22 +11,28 @@ bot = TeleBot(TOKEN)
 
 
 # Авторизация пользователя в системе
-def auth_user(bot: TeleBot, message: types.Message) -> BaseRole:
+def auth_user(
+    bot: TeleBot, message: types.Message, call: types.CallbackQuery = None
+) -> BaseRole:
+    if not message:
+        message = call.message
+
     chat_id = message.chat.id if message.chat else message.from_user.id
     http_client = HttpClient(chat_id, bot)
 
     if http_client.is_login():
         user = http_client.get(f"/users/profile")
 
-        role = user[4]
-        
-        user = get_user(role, bot, chat_id)
+        user_id = int(user[0])
+        role = int(user[6])
 
-        if message.chat:
-            user.message_handler(message)
+        user = get_user(role, bot, user_id, chat_id)
+
+        if call:
+            user.call_handler(json.loads(call.data))
 
         else:
-            user.call_handler(message.data)
+            user.message_handler(message.text)
 
     else:
         bot.send_message(
@@ -39,7 +45,7 @@ def auth_user(bot: TeleBot, message: types.Message) -> BaseRole:
                 def success_handler(payload):
                     login, password = payload
 
-                    if http_client.login(login, password):
+                    if http_client.login(login, password, chat_id):
                         bot.send_message(chat_id, f"Авторизация завершена ✅")
                         auth_user(bot, msg)
 
@@ -77,10 +83,7 @@ def auth_user(bot: TeleBot, message: types.Message) -> BaseRole:
 
                 register_form(bot, msg, success_handler)
             else:
-                bot.send_message(
-                    chat_id, f"Необходима авторизация ⚠️", reply_markup=auth_markup()
-                )
-                bot.register_next_step_handler(message, lambda msg: auth_form(msg))
+                auth_user(bot, message)
 
         bot.register_next_step_handler(message, lambda msg: auth_form(msg))
 
@@ -88,9 +91,7 @@ def auth_user(bot: TeleBot, message: types.Message) -> BaseRole:
 # Обработчик команды /start
 @bot.message_handler(commands=["start"])
 def start(message: types.Message):
-    user = auth_user(bot, message)
-    if user:
-        user.message_handler(message.text)
+    auth_user(bot, message)
 
 
 # Обработчик команды /help
@@ -113,19 +114,13 @@ def help(message):
 # Обработчик callback-запросов от инлайн кнопок
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
-    data = json.loads(call.data)
-
-    user = auth_user(bot, call)
-    if user:
-        user.call_handler(data)
+    auth_user(bot, None, call)
 
 
 # Обработчик текстовых сообщений пользователя
 @bot.message_handler(func=lambda message: True)
 def handle_message(message: types.Message):
-    user = auth_user(bot, message)
-    if user:
-        user.message_handler(message.text)
+    auth_user(bot, message)
 
 
 # Запуск бота

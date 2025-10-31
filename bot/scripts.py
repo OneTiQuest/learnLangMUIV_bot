@@ -1,40 +1,55 @@
+import json
 from bot.exersise_handlers import ExersiseFactory
 import bot.markups as markups
 import bot.state as state
+from bot.api import HttpClient
 from telebot import TeleBot, types
 
 
-def init_settings_script(user_id):
-    user_has_lang = get_user_langs(user_id)
-    user_has_course = upsert_settings(user_id)["course_id"]
+def init_settings_script(chat_id: int, user_id: int):
+    http_client = HttpClient(chat_id)
+    user_has_langs = http_client.get(f"/users/{user_id}/langs")
+    user_has_courses = http_client.get(f"/users/{user_id}/courses")
 
-    if not user_has_lang:
-        state.set_state(user_id, "1_step")
+    if not user_has_langs:
+        state.set_state(chat_id, "1_step")
 
-    elif not user_has_course:
-        state.set_state(user_id, "2_step")
+    elif not user_has_courses:
+        state.set_state(chat_id, "2_step")
 
     else:
-        state.set_state(user_id, "main")
+        state.set_state(chat_id, "main")
 
 
-def select_theme_script(bot, theme_id, user_id):
-    first_exersise = get_exercise(theme_id)
+def select_theme_script(bot, theme_id: int, user_id: int, chat_id: int):
+    http_client = HttpClient(chat_id)
+    first_exersise = http_client.get(f"/themes/{theme_id}/exercises/first")
+
     if not first_exersise:
         bot.send_message(
-            user_id, "К сожалению доступных заданий для вашей темы не найдено :("
+            chat_id, "К сожалению доступных заданий для вашей темы не найдено :("
         )
-        state.set_state(user_id, "main")
+        state.set_state(chat_id, "main")
         return
 
-    state.set_state(user_id, f"theme/{theme_id}/{first_exersise[0]}")
+    state.set_state(chat_id, f"theme/{theme_id}/{first_exersise[0]}")
 
-    ExersiseFactory.create_exersise(first_exersise, bot, user_id).send()
+    ExersiseFactory.create_exersise(first_exersise, bot, chat_id).send()
 
 
-def calc_result(bot, user_id: int, theme_id: int):
-    answers = get_user_answers(user_id, theme_id)
+def calc_result(bot, user_id: int, chat_id: int, theme_id: int):
+    http_client = HttpClient(chat_id)
+    answers = http_client.get(f"/users/{user_id}/themes/{theme_id}/answers")
     max_a = len(answers)
+
+    if max_a == 0:
+        bot.send_message(
+            chat_id,
+            f"Изучение темы завершено ✅",
+            reply_markup=markups.get_next_markup(),
+        )
+        return
+
     s_a_counter = 0
 
     for u_a, s_a in answers:
@@ -57,14 +72,17 @@ def calc_result(bot, user_id: int, theme_id: int):
     elif test_result < 85:
         grade = 4
 
+    http_client.post(
+        f"/users/{user_id}/themes/{theme_id}/grades",
+        {"grade": grade},
+    )
+
     bot.send_message(
-        user_id,
+        chat_id,
         f"<b>Вы {prefix} сдали тест {smile}</b>\n\n{s_a_counter} из {max_a} вопросов решено верно. Ваша оценка {grade}",
         reply_markup=markups.get_next_markup(),
         parse_mode="HTML",
     )
-
-    return grade
 
 
 def login_form(bot: TeleBot, message: types.Message, success_cb):
